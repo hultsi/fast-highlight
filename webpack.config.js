@@ -19,6 +19,8 @@ module.exports = {
     },
 
     plugins: [
-        new WebpackComponents({})
+        new WebpackComponents([
+            { in: "./src/test-env/index.html", out: "./index.html" }
+        ])
     ]
 };
