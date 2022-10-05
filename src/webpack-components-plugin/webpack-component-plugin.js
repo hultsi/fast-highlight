@@ -7,17 +7,33 @@ const genericError = function genericError() {
     for (let i = 0; i < s.length; ++i) {
         s[i] = s[i].trim();
     }
-    console.log(`Error stack from ${s[0].split(" ")[1]}(...)`)
+    
+    const functionName = (() => {
+        const name = `${s[0].split(" ")[1]}`;
+        if (name === "new") {
+            const className = `${s[0].split(" ")[2]}`;
+            return `${name} ${className}`;
+        }
+        return name;
+    })();
+
+    console.log(`Error stack from ${functionName}(...)`)
     console.log(s);
-    throw `Something bad happened and brought you here.`;
+    throw `Something bad happened and brought you here. Check the functions stack above.`;
 }
 
 const relativeToAbsolutePath = function relativeToAbsolutePath(path) {
     if (Array.isArray(path)) {
         for (let i = 0; i < path.length; ++i) {
+            if (typeof (path[i]) !== "string") {
+                genericError();
+            }
             path[i] = nodePath.resolve(path[i]).replace(/\\{1,2}/g, "/");
         }
         return path;
+    }
+    if (typeof (path) !== "string") {
+        genericError();
     }
     return nodePath.resolve(path).replace(/\\{1,2}/g, "/");
 }
@@ -114,6 +130,8 @@ class WebpackComponentsPlugin {
                 return upToFirstBodyTagSliced.split(/<\/body>/)[0];
             })();
 
+            // TODO: Add .css references (Make sure duplicates are ignored)
+
             // Oh dear lord... finally add the content and "move copiedContent pointer"
             parsedContent += contentInsideBodyTags;
             copiedContent = copiedContent.substring(theActualParsedTag.length)
@@ -128,7 +146,7 @@ class WebpackComponentsPlugin {
 
         compiler.hooks.thisCompilation.tap(pluginName, (compilation) => {
             this.root = compilation.options.context;
-            const filesWithExt = findFilesWithExtRecursive(nodePath.join(this.root, "/src"), "html");
+            const filesWithExt = findFilesWithExtRecursive(nodePath.join(this.root, "/src"), "html"); // TODO: these should be user defined?
             const filesAbs = relativeToAbsolutePath(filesWithExt);
 
             // Parse html files
@@ -137,23 +155,19 @@ class WebpackComponentsPlugin {
                     continue;
                 }
                 const file = fs.readFileSync(filesAbs[i], { encoding: "utf8" });
-                console.log(file);
-                this.replaceHtmlComponents(file);
+                const parsedContent = this.replaceHtmlComponents(file);
+                console.log(parsedContent);
+                
+                // Emit assets?
+                compilation.emitAsset(
+                    "./index.html",
+                    new RawSource(parsedContent)
+                );
             }
-
-            // Combine component references
-
-            // Add .css references (Make sure duplicates are ignored)
 
             // Add meta tags as well? (Warn about duplicate meta tags?)
 
             // Add code snippet components
-
-            // Emit assets?
-            compilation.emitAsset(
-                "./index.html",
-                new RawSource("")
-            );
 
             // Anything else?
         });
