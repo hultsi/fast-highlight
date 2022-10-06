@@ -7,7 +7,7 @@ const genericError = function genericError() {
     for (let i = 0; i < s.length; ++i) {
         s[i] = s[i].trim();
     }
-    
+
     const functionName = (() => {
         const name = `${s[0].split(" ")[1]}`;
         if (name === "new") {
@@ -60,7 +60,7 @@ const findFilesWithExtRecursive = function findFilesWithExtRecursive(dirPath, ex
             }
         }
     }
-    
+
     for (let i = 0; i < arrayOfFiles.length; ++i) {
         arrayOfFiles[i] = arrayOfFiles[i].replace(/\\{1,2}/g, "/");
     }
@@ -97,11 +97,33 @@ class WebpackComponentsPlugin {
         return false;
     }
 
+    getComponentContent = function getComponentContent(fileName) {
+        // Find the component from "this.components" and parse body content from it
+        const componentPath = this.components.find(el => {
+            const splittedPath = el.split("/");
+            return splittedPath[splittedPath.length - 1] === fileName;
+        });
+        if (componentPath === undefined) {
+            genericError();
+        }
+        return fs.readFileSync(componentPath, { encoding: "utf-8" });
+    }
+
     replaceHtmlComponents = function replaceHtmlComponents(fileContent) {
         const fileExt = "html";
         const componentTag = new RegExp(`(<component-)(.*)([.]${fileExt}/>)`);
         const componentTagEnd = new RegExp(`/>`);
-        let copiedContent = fileContent;
+        const HEAD_TEMPORARY_HASH = `[TODO_THIS_COULD_BE_A_LONG_HASH_FOR_EXAMPLE]`;
+
+        let copiedContentHead = (() => {
+            const upToFirstHeadTagSliced = fileContent.split(/<head>/)[1]; // No spaces in tags currently allowed!
+            return upToFirstHeadTagSliced.split(/<\/head>/)[0];
+        })();
+        let copiedContent = (() => {
+            const upToFirstHeadTagSliced = fileContent.split(/<head>/)[0]; // No spaces in tags currently allowed!
+            const beginningWithHash = `${upToFirstHeadTagSliced}<head>${HEAD_TEMPORARY_HASH}</head>`;
+            return beginningWithHash + fileContent.split(/<\/head>/)[1];
+        })();
         let parsedContent = "";
         while (true) {
             const ind = copiedContent.search(componentTag);
@@ -109,10 +131,12 @@ class WebpackComponentsPlugin {
                 parsedContent += copiedContent;
                 break;
             }
+
             // Component found
             parsedContent += copiedContent.substring(0, ind);
             copiedContent = copiedContent.substring(ind); // Remove already parsed content
 
+            // Parse the whole component tag and then the file name from it
             const tagEnd = copiedContent.search(componentTagEnd) + "/>".length;
             const theActualParsedTag = copiedContent.substring(0, tagEnd); // E.g., <component-some-file-name-here.html/>
             const fileName = (() => {
@@ -120,22 +144,48 @@ class WebpackComponentsPlugin {
                 return theTagEnding.split(`/>`)[0];
             })();
 
-            const componentPath = this.components.find(el => {
-                const splittedPath = el.split("/");
-                return splittedPath[splittedPath.length - 1] === fileName;
-            });
-            const componentContent = fs.readFileSync(componentPath, { encoding: "utf-8" });
+            const componentContent = this.getComponentContent(fileName);
             const contentInsideBodyTags = (() => {
                 const upToFirstBodyTagSliced = componentContent.split(/<body>/)[1]; // No spaces in tags currently allowed!
                 return upToFirstBodyTagSliced.split(/<\/body>/)[0];
             })();
 
-            // TODO: Add .css references (Make sure duplicates are ignored)
-
-            // Oh dear lord... finally add the content and "move copiedContent pointer"
+            // Finally add the content and "move copiedContent pointer"
             parsedContent += contentInsideBodyTags;
             copiedContent = copiedContent.substring(theActualParsedTag.length)
+
+            // Then handle <head> tags
+            // Todo: no need to do this multiple times for the same component
+            // TODO: Add .css references (Make sure duplicates are ignored)
+            let contentInsideHeadTags = (() => {
+                const upToFirstHeadTagSliced = componentContent.split(/<head>/)[1]; // No spaces in tags currently allowed!
+                return upToFirstHeadTagSliced.split(/<\/head>/)[0].trim();
+            })();
+            while (true) {
+                const linkTagBeginPointer = contentInsideHeadTags.search(/<link.*?>/);
+                if (linkTagBeginPointer === -1) {
+                    break;
+                }
+                contentInsideHeadTags = contentInsideHeadTags.substring(linkTagBeginPointer);
+
+                const linkTagEndPointer = contentInsideHeadTags.search(">");
+                const fullLinkTagString = contentInsideHeadTags.substring(linkTagBeginPointer, linkTagEndPointer + 1);
+                const hrefContent = (() => {
+                    // TODO: is there a bit shorter way for this?
+                    const hrefStart = contentInsideHeadTags.search(/href=.*\.css/);
+                    const hrefStartContent = contentInsideHeadTags.substring(hrefStart);
+                    const hrefEnd = hrefStartContent.search(/\.css/); // Todo: What if we have href="asd.css " <-- notice space
+                    const beginning = "href=\"";
+                    const end = ".css";
+                    return hrefStartContent.substring(beginning.length, hrefEnd + end.length)
+                })();
+                console.log(hrefContent, fullLinkTagString) // These are needed
+
+
+                contentInsideHeadTags = contentInsideHeadTags.substring(linkTagEndPointer);
+            }
         }
+        parsedContent = parsedContent.replace(`${HEAD_TEMPORARY_HASH}`, copiedContentHead);
         return parsedContent;
     }
 
@@ -156,8 +206,8 @@ class WebpackComponentsPlugin {
                 }
                 const file = fs.readFileSync(filesAbs[i], { encoding: "utf8" });
                 const parsedContent = this.replaceHtmlComponents(file);
-                console.log(parsedContent);
-                
+                // console.log(parsedContent);
+
                 // Emit assets?
                 compilation.emitAsset(
                     "./index.html",
