@@ -1,12 +1,4 @@
-/**
- * Calculates covariance of 2 arrays
- * @param {Array 1} X 
- * @param {Array 2} Y 
- * @param {mean 1 (optional)} mX 
- * @param {mean 2 (optional)} mY 
- * @returns covariance
- */
- const covar = function covar(xArr, yArr) {
+const covar = function covar(xArr, yArr) {
 	if (xArr.length !== yArr.length)
 		return null;
 	const mX = mean(xArr);

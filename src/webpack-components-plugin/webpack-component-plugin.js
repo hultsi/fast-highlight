@@ -1,5 +1,6 @@
 const fs = require("fs");
 const nodePath = require("path");
+const codeFormatter = require("./code-formatter.js");
 
 const genericError = function genericError() {
     const e = new Error();
@@ -216,10 +217,24 @@ class WebpackComponentsPlugin {
                 parsedContent += copiedContent;
                 break;
             }
-         
+
             // Component found
             parsedContent += copiedContent.substring(0, ind);
             copiedContent = copiedContent.substring(ind); // Remove already parsed content
+
+            // Parse the whole component tag and then the file name from it
+            const tagEnd = copiedContent.search(componentTagEnd) + "/>".length;
+            const theActualParsedTag = copiedContent.substring(0, tagEnd); // E.g., <component-some-file-name-here.html/>
+            const fileName = (() => {
+                const theTagEnding = theActualParsedTag.split("component-")[1];
+                return theTagEnding.split(`/>`)[0];
+            })();
+
+            const componentContent = this.getComponentContent(fileName);
+
+            // Finally add the content and "move copiedContent pointer"
+            parsedContent += codeFormatter.formatContentToCodeblock(componentContent);
+            copiedContent = copiedContent.substring(theActualParsedTag.length);
         }
 
         return parsedContent;
