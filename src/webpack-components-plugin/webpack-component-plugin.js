@@ -109,6 +109,34 @@ class WebpackComponentsPlugin {
         return fs.readFileSync(componentPath, { encoding: "utf-8" });
     }
 
+    getLinkTags = function getLinkTags(contentInsideHeadTags) {
+        let out = [];
+        let copiedContent = contentInsideHeadTags; // Todo: probably don't need a copy here since it's a string
+        while (true) {
+            const linkTagBeginPointer = copiedContent.search(/<link.*?>/);
+            if (linkTagBeginPointer === -1) {
+                break;
+            }
+            copiedContent = copiedContent.substring(linkTagBeginPointer);
+
+            const linkTagEndPointer = copiedContent.search(">");
+            const fullLinkTagString = copiedContent.substring(0, linkTagEndPointer + 1);
+            const href = (() => {
+                // TODO: is there a bit shorter way for this?
+                const hrefStart = copiedContent.search(/href=.*\.css/);
+                const hrefStartContent = copiedContent.substring(hrefStart);
+                const hrefEnd = hrefStartContent.search(/\.css/); // Todo: What if we have href="asd.css " <-- notice space
+                const beginning = "href=\"";
+                const end = ".css";
+                return hrefStartContent.substring(beginning.length, hrefEnd + end.length)
+            })();
+            const resolvedHref = nodePath.resolve(href); // resolve the path for easier matching
+            out = [...out, { resolvedHref, fullLinkTagString }];
+            copiedContent = copiedContent.substring(linkTagEndPointer);
+        }
+        return out;
+    }
+
     replaceHtmlComponents = function replaceHtmlComponents(fileContent) {
         const fileExt = "html";
         const componentTag = new RegExp(`(<component-)(.*)([.]${fileExt}/>)`);
@@ -156,33 +184,16 @@ class WebpackComponentsPlugin {
 
             // Then handle <head> tags
             // Todo: no need to do this multiple times for the same component
-            // TODO: Add .css references (Make sure duplicates are ignored)
-            let contentInsideHeadTags = (() => {
+            const contentInsideHeadTags = (() => {
                 const upToFirstHeadTagSliced = componentContent.split(/<head>/)[1]; // No spaces in tags currently allowed!
                 return upToFirstHeadTagSliced.split(/<\/head>/)[0].trim();
             })();
-            while (true) {
-                const linkTagBeginPointer = contentInsideHeadTags.search(/<link.*?>/);
-                if (linkTagBeginPointer === -1) {
-                    break;
+            const linkTagsIncludedAlready = this.getLinkTags(copiedContentHead);
+            const linkTagsToInclude = this.getLinkTags(contentInsideHeadTags);
+            for (let i = 0; i < linkTagsToInclude.length; ++i) {
+                if (linkTagsIncludedAlready.findIndex(el => el.resolvedHref === linkTagsToInclude[i].resolvedHref) === -1) {
+                    copiedContentHead += linkTagsToInclude[i].fullLinkTagString;
                 }
-                contentInsideHeadTags = contentInsideHeadTags.substring(linkTagBeginPointer);
-
-                const linkTagEndPointer = contentInsideHeadTags.search(">");
-                const fullLinkTagString = contentInsideHeadTags.substring(linkTagBeginPointer, linkTagEndPointer + 1);
-                const hrefContent = (() => {
-                    // TODO: is there a bit shorter way for this?
-                    const hrefStart = contentInsideHeadTags.search(/href=.*\.css/);
-                    const hrefStartContent = contentInsideHeadTags.substring(hrefStart);
-                    const hrefEnd = hrefStartContent.search(/\.css/); // Todo: What if we have href="asd.css " <-- notice space
-                    const beginning = "href=\"";
-                    const end = ".css";
-                    return hrefStartContent.substring(beginning.length, hrefEnd + end.length)
-                })();
-                console.log(hrefContent, fullLinkTagString) // These are needed
-
-
-                contentInsideHeadTags = contentInsideHeadTags.substring(linkTagEndPointer);
             }
         }
         parsedContent = parsedContent.replace(`${HEAD_TEMPORARY_HASH}`, copiedContentHead);
@@ -206,7 +217,6 @@ class WebpackComponentsPlugin {
                 }
                 const file = fs.readFileSync(filesAbs[i], { encoding: "utf8" });
                 const parsedContent = this.replaceHtmlComponents(file);
-                // console.log(parsedContent);
 
                 // Emit assets?
                 compilation.emitAsset(
