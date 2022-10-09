@@ -180,7 +180,7 @@ class WebpackComponentsPlugin {
 
             // Finally add the content and "move copiedContent pointer"
             parsedContent += contentInsideBodyTags;
-            copiedContent = copiedContent.substring(theActualParsedTag.length)
+            copiedContent = copiedContent.substring(theActualParsedTag.length);
 
             // Then handle <head> tags
             // Todo: no need to do this multiple times for the same component
@@ -195,8 +195,33 @@ class WebpackComponentsPlugin {
                     copiedContentHead += linkTagsToInclude[i].fullLinkTagString;
                 }
             }
+
+            // Add meta tags as well? (Warn about duplicate meta tags?)
+
+            // Add code snippet components
         }
-        parsedContent = parsedContent.replace(`${HEAD_TEMPORARY_HASH}`, copiedContentHead);
+        return parsedContent.replace(`${HEAD_TEMPORARY_HASH}`, copiedContentHead);
+    }
+
+    replaceCodeComponents = function replaceCodeComponents(fileContent) {
+        const fileExt = "js";
+        const componentTag = new RegExp(`(<component-)(.*)([.]${fileExt}/>)`);
+        const componentTagEnd = new RegExp(`/>`);
+
+        let copiedContent = fileContent;
+        let parsedContent = "";
+        while (true) {
+            const ind = copiedContent.search(componentTag);
+            if (ind < 0) {
+                parsedContent += copiedContent;
+                break;
+            }
+         
+            // Component found
+            parsedContent += copiedContent.substring(0, ind);
+            copiedContent = copiedContent.substring(ind); // Remove already parsed content
+        }
+
         return parsedContent;
     }
 
@@ -216,7 +241,10 @@ class WebpackComponentsPlugin {
                     continue;
                 }
                 const file = fs.readFileSync(filesAbs[i], { encoding: "utf8" });
-                const parsedContent = this.replaceHtmlComponents(file);
+                const parsedContent = (() => {
+                    const htmlComponentsReplaced = this.replaceHtmlComponents(file);
+                    return this.replaceCodeComponents(htmlComponentsReplaced);
+                })();
 
                 // Emit assets?
                 compilation.emitAsset(
@@ -224,10 +252,6 @@ class WebpackComponentsPlugin {
                     new RawSource(parsedContent)
                 );
             }
-
-            // Add meta tags as well? (Warn about duplicate meta tags?)
-
-            // Add code snippet components
 
             // Anything else?
         });
