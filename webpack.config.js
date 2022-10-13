@@ -2,7 +2,7 @@ const path = require('path');
 const WebpackComponents = require("./src/webpack-components-plugin/webpack-component-plugin.js")
 
 module.exports = {
-    mode: "production",
+    mode: "development",
     entry: "./src/test-env/main.js",
     output: {
         path: path.resolve(__dirname, "build"),
@@ -17,10 +17,20 @@ module.exports = {
         maxEntrypointSize: 512000,
         maxAssetSize: 512000
     },
-
+    devServer: {
+        contentBase: ["./src"],
+        watchContentBase: true
+    },
     plugins: [
-        new WebpackComponents([
-            { in: "./src/test-env/index.html", out: "./index.html" }
-        ])
+        new WebpackComponents({
+            // todo: Create exclude watch list here maybe.
+            components: [
+                { in: "./src/test-env" }
+            ],
+            sources: [
+                { in: "./src/test-env/index.html", out: "./index.html" }
+            ],
+            codeblockCss: { out: "./css/code-formatter.css" }
+        })
     ]
 };

@@ -1,5 +1,6 @@
 const fs = require("fs");
 const nodePath = require("path");
+const codeFormatter = require("./code-formatter.js");
 
 const genericError = function genericError() {
     const e = new Error();
@@ -69,10 +70,19 @@ const findFilesWithExtRecursive = function findFilesWithExtRecursive(dirPath, ex
 }
 
 class WebpackComponentsPlugin {
-    constructor(files) {
+    constructor(args) {
         this.root = "";
+        this.hasCodeblocks = false;
+        // this.filesToWatch = []; // Updated during compilation
 
-        const componentPaths = relativeToAbsolutePath("./src/test-env"); // todo: make this user param
+        const componentPaths = (() => {
+            const paths = new Array(args.components.length);
+            for (let i = 0; i < args.components.length; ++i) {
+                paths[i] = relativeToAbsolutePath(args.components[i].in);
+            }
+            return paths;
+        })();
+
         this.components = [];
         if (Array.isArray(componentPaths)) {
             for (let i = 0; i < componentPaths.length; ++i) {
@@ -82,10 +92,12 @@ class WebpackComponentsPlugin {
             this.components = findFilesWithExtRecursive(componentPaths);
         }
 
-        this.files = new Array(files.length);
+        this.files = new Array(args.sources.length);
         for (let i = 0; i < this.files.length; ++i) {
-            this.files[i] = { in: relativeToAbsolutePath(files[i].in), out: files[i].out };
+            this.files[i] = { in: relativeToAbsolutePath(args.sources[i].in), out: args.sources[i].out };
         }
+
+        this.codeblockCssPath = args.codeblockCss.out;
     }
 
     isIncludedInBuild = function isIncludedInBuild(path) {
@@ -95,6 +107,15 @@ class WebpackComponentsPlugin {
             }
         }
         return false;
+    }
+
+    getOutputPath = function getOutputPath(path) {
+        for (let i = 0; i < this.files.length; ++i) {
+            if (this.files[i].in === path) {
+                return this.files[i].out;
+            }
+        }
+        return null;
     }
 
     getComponentContent = function getComponentContent(fileName) {
@@ -180,7 +201,7 @@ class WebpackComponentsPlugin {
 
             // Finally add the content and "move copiedContent pointer"
             parsedContent += contentInsideBodyTags;
-            copiedContent = copiedContent.substring(theActualParsedTag.length)
+            copiedContent = copiedContent.substring(theActualParsedTag.length);
 
             // Then handle <head> tags
             // Todo: no need to do this multiple times for the same component
@@ -195,8 +216,61 @@ class WebpackComponentsPlugin {
                     copiedContentHead += linkTagsToInclude[i].fullLinkTagString;
                 }
             }
+
+            // Add meta tags as well? (Warn about duplicate meta tags?)
         }
-        parsedContent = parsedContent.replace(`${HEAD_TEMPORARY_HASH}`, copiedContentHead);
+        return parsedContent.replace(`${HEAD_TEMPORARY_HASH}`, copiedContentHead);
+    }
+
+    replaceCodeComponents = function replaceCodeComponents(fileContent) {
+        const fileExt = "js";
+        const componentTag = new RegExp(`(<component-)(.*)([.]${fileExt}/>)`);
+        const componentTagEnd = new RegExp(`/>`);
+
+        let copiedContent = fileContent;
+        let parsedContent = "";
+        while (true) {
+            const ind = copiedContent.search(componentTag);
+            if (ind < 0) {
+                parsedContent += copiedContent;
+                break;
+            }
+            this.hasCodeblocks = true;
+
+            // Component found
+            parsedContent += copiedContent.substring(0, ind);
+            copiedContent = copiedContent.substring(ind); // Remove already parsed content
+
+            // Parse the whole component tag and then the file name from it
+            const tagEnd = copiedContent.search(componentTagEnd) + "/>".length;
+            const theActualParsedTag = copiedContent.substring(0, tagEnd); // E.g., <component-some-file-name-here.html/>
+            const fileName = (() => {
+                const theTagEnding = theActualParsedTag.split("component-")[1];
+                return theTagEnding.split(`/>`)[0];
+            })();
+
+            const componentContent = this.getComponentContent(fileName);
+
+            // Finally add the content and "move copiedContent pointer"
+            parsedContent += codeFormatter.formatContentToCodeblock(componentContent);
+            copiedContent = copiedContent.substring(theActualParsedTag.length);
+        }
+
+        // Finally add the link tag to the html file
+        const linkTag = `<link rel="stylesheet" href="${this.codeblockCssPath}">`;
+        if (!this.hasCodeblocks || parsedContent.search(linkTag) > -1) {
+            // Don't add the link tag if it is there already
+            return parsedContent;
+        }
+        // Otherwise add the link tag to the end of head
+        const ind = parsedContent.search(/<\/head>/);
+        if (ind > -1) {
+            parsedContent = `
+                ${parsedContent.substring(0, ind)}
+                ${linkTag}
+                ${parsedContent.substring(ind)}
+            `;
+        }
         return parsedContent;
     }
 
@@ -207,6 +281,7 @@ class WebpackComponentsPlugin {
 
         compiler.hooks.thisCompilation.tap(pluginName, (compilation) => {
             this.root = compilation.options.context;
+            this.hasCodeblocks = false;
             const filesWithExt = findFilesWithExtRecursive(nodePath.join(this.root, "/src"), "html"); // TODO: these should be user defined?
             const filesAbs = relativeToAbsolutePath(filesWithExt);
 
@@ -216,20 +291,35 @@ class WebpackComponentsPlugin {
                     continue;
                 }
                 const file = fs.readFileSync(filesAbs[i], { encoding: "utf8" });
-                const parsedContent = this.replaceHtmlComponents(file);
+                const parsedContent = (() => {
+                    const htmlComponentsReplaced = this.replaceHtmlComponents(file);
+                    return this.replaceCodeComponents(htmlComponentsReplaced);
+                })();
 
-                // Emit assets?
                 compilation.emitAsset(
-                    "./index.html",
+                    this.getOutputPath(filesAbs[i]),
                     new RawSource(parsedContent)
                 );
             }
 
-            // Add meta tags as well? (Warn about duplicate meta tags?)
+            if (this.hasCodeblocks) {
+                const cbCss = fs.readFileSync(nodePath.join(__dirname, "/", "code-formatter.css"), { encoding: "utf8" });
+                compilation.emitAsset(
+                    this.codeblockCssPath,
+                    new RawSource(cbCss)
+                )
+            }
+        });
 
-            // Add code snippet components
-
-            // Anything else?
+        compiler.hooks.afterCompile.tapAsync(pluginName, (compilation, callback) => {
+            // TODO: this is not complete
+            const filesWithExt = findFilesWithExtRecursive(nodePath.join(this.root, "/src"), "html"); // TODO: these should be user defined?
+            const filesAbs = relativeToAbsolutePath(filesWithExt);
+            for (let i = 0; i < filesAbs.length; ++i) {
+                // For some reason webpack doesn't understand forward slashes...?
+                compilation.fileDependencies.add(filesAbs[i].replaceAll("/", "\\"));
+            }
+            callback();
         });
     }
 }
