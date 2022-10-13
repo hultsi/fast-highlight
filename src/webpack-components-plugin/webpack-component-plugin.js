@@ -70,10 +70,19 @@ const findFilesWithExtRecursive = function findFilesWithExtRecursive(dirPath, ex
 }
 
 class WebpackComponentsPlugin {
-    constructor(files) {
+    constructor(args) {
         this.root = "";
+        this.hasCodeblocks = false;
+        // this.filesToWatch = []; // Updated during compilation
 
-        const componentPaths = relativeToAbsolutePath("./src/test-env"); // todo: make this user param
+        const componentPaths = (() => {
+            const paths = new Array(args.components.length);
+            for (let i = 0; i < args.components.length; ++i) {
+                paths[i] = relativeToAbsolutePath(args.components[i].in);
+            }
+            return paths;
+        })();
+
         this.components = [];
         if (Array.isArray(componentPaths)) {
             for (let i = 0; i < componentPaths.length; ++i) {
@@ -83,10 +92,12 @@ class WebpackComponentsPlugin {
             this.components = findFilesWithExtRecursive(componentPaths);
         }
 
-        this.files = new Array(files.length);
+        this.files = new Array(args.sources.length);
         for (let i = 0; i < this.files.length; ++i) {
-            this.files[i] = { in: relativeToAbsolutePath(files[i].in), out: files[i].out };
+            this.files[i] = { in: relativeToAbsolutePath(args.sources[i].in), out: args.sources[i].out };
         }
+
+        this.codeblockCssPath = args.codeblockCss.out;
     }
 
     isIncludedInBuild = function isIncludedInBuild(path) {
@@ -96,6 +107,15 @@ class WebpackComponentsPlugin {
             }
         }
         return false;
+    }
+
+    getOutputPath = function getOutputPath(path) {
+        for (let i = 0; i < this.files.length; ++i) {
+            if (this.files[i].in === path) {
+                return this.files[i].out;
+            }
+        }
+        return null;
     }
 
     getComponentContent = function getComponentContent(fileName) {
@@ -198,8 +218,6 @@ class WebpackComponentsPlugin {
             }
 
             // Add meta tags as well? (Warn about duplicate meta tags?)
-
-            // Add code snippet components
         }
         return parsedContent.replace(`${HEAD_TEMPORARY_HASH}`, copiedContentHead);
     }
@@ -217,6 +235,7 @@ class WebpackComponentsPlugin {
                 parsedContent += copiedContent;
                 break;
             }
+            this.hasCodeblocks = true;
 
             // Component found
             parsedContent += copiedContent.substring(0, ind);
@@ -237,6 +256,21 @@ class WebpackComponentsPlugin {
             copiedContent = copiedContent.substring(theActualParsedTag.length);
         }
 
+        // Finally add the link tag to the html file
+        const linkTag = `<link rel="stylesheet" href="${this.codeblockCssPath}">`;
+        if (!this.hasCodeblocks || parsedContent.search(linkTag) > -1) {
+            // Don't add the link tag if it is there already
+            return parsedContent;
+        }
+        // Otherwise add the link tag to the end of head
+        const ind = parsedContent.search(/<\/head>/);
+        if (ind > -1) {
+            parsedContent = `
+                ${parsedContent.substring(0, ind)}
+                ${linkTag}
+                ${parsedContent.substring(ind)}
+            `;
+        }
         return parsedContent;
     }
 
@@ -247,6 +281,7 @@ class WebpackComponentsPlugin {
 
         compiler.hooks.thisCompilation.tap(pluginName, (compilation) => {
             this.root = compilation.options.context;
+            this.hasCodeblocks = false;
             const filesWithExt = findFilesWithExtRecursive(nodePath.join(this.root, "/src"), "html"); // TODO: these should be user defined?
             const filesAbs = relativeToAbsolutePath(filesWithExt);
 
@@ -261,14 +296,30 @@ class WebpackComponentsPlugin {
                     return this.replaceCodeComponents(htmlComponentsReplaced);
                 })();
 
-                // Emit assets?
                 compilation.emitAsset(
-                    "./index.html",
+                    this.getOutputPath(filesAbs[i]),
                     new RawSource(parsedContent)
                 );
             }
 
-            // Anything else?
+            if (this.hasCodeblocks) {
+                const cbCss = fs.readFileSync(nodePath.join(__dirname, "/", "code-formatter.css"), { encoding: "utf8" });
+                compilation.emitAsset(
+                    this.codeblockCssPath,
+                    new RawSource(cbCss)
+                )
+            }
+        });
+
+        compiler.hooks.afterCompile.tapAsync(pluginName, (compilation, callback) => {
+            // TODO: this is not complete
+            const filesWithExt = findFilesWithExtRecursive(nodePath.join(this.root, "/src"), "html"); // TODO: these should be user defined?
+            const filesAbs = relativeToAbsolutePath(filesWithExt);
+            for (let i = 0; i < filesAbs.length; ++i) {
+                // For some reason webpack doesn't understand forward slashes...?
+                compilation.fileDependencies.add(filesAbs[i].replaceAll("/", "\\"));
+            }
+            callback();
         });
     }
 }

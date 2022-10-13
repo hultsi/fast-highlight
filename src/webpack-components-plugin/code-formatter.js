@@ -1,35 +1,35 @@
+/**
+ * All of these will be tokenized on
+ * top of variables (e.g., letter combinations without spaces)
+ */
 const SIMPLE_OPERATORS = new Set([
-    '+',
-    '-',
-    '*',
-    '/',
-    '=',
-    '<',
-    '>',
-    '(',
-    ')',
-    '{',
-    '}',
-    ":",
-    ";",
-    ".",
-    "++",
-    "--",
-    "-=",
-    "+=",
-    "==",
-    ">=",
-    "<=",
-    "::",
-    "//",
-    "/*",
-    "*/",
-    "===",
-    "!==",
+    '+', '-', '*', '/', '=',
+    '<', '>', '(', ')', '{',
+    '}', ":", ";", ".",
+    "\n", "\t", " ",// Todo: <--- move these to their own Set? (Also, spaces?)
+    "++", "--", "-=", "+=", "==",
+    ">=", "<=", "::", "//", "/*",
+    "*/", "===", "!==",
 ]);
 
-// Todo: set or map maybe?
-// const FORMATTING_RULES = {};
+const FORMATTING_RULES = {
+    "JavaScript": {
+        "function": "<span>function</span>",
+        "const": "<span class='wcb-js-const'>const</span>",
+        "let": "<span>let</span>",
+        "while": "<span>while</span>",
+        "for": "<span>for</span>",
+        "===": "<span>===</span>",
+        "!==": "<span>!==</span>",
+        "==": "<span>==</span>",
+        "!=": "<span>!=</span>",
+        "=": "<span>=</span>",
+        "+": "<span>+</span>",
+        "-": "<span>-</span>",
+        "*": "<span>*</span>",
+        "/": "<span>/</span>",
+    }
+};
 
 /**
  * Checks if give character at position 0 of the string is within
@@ -51,9 +51,9 @@ const isValidChar = function isValidChar(c) {
  */
 const tokenize = function tokenize(cmd) {
     // Add three extra spaces to cmd to prevent segmentation fault in the loop (i + 3)
+    // Though .substring handles that for us but it's good practice anyway
     cmd = cmd.replaceAll(/\r/g, '') + "   ";
-    let len = 0;
-    const tokenArr = new Array(len).fill("");
+    const tokenArr = new Array(cmd.length).fill("");
     let prevWasOperator = true;
     let pos = 0;
     for (let i = 0; i < cmd.length; ++i) {
@@ -86,12 +86,21 @@ const tokenize = function tokenize(cmd) {
         }
         ++pos;
     }
-    return tokenArr;
+    // Todo: not the most efficient way to do this
+    return tokenArr.filter(el => el !== '');
 }
 
 const formatContentToCodeblock = function formatContentToCodeblock(content) {
     const tokens = tokenize(content);
-    console.log(tokens);
+    // Todo: Include other than js only
+    for (let i = 0; i < tokens.length; ++i) {
+        tokens[i] = FORMATTING_RULES["JavaScript"][tokens[i]] ?? tokens[i];
+    }
+    return `
+        <pre>
+            <code>\n${tokens.join("")}\n</code>
+        </pre>
+    `;
 }
 
 module.exports = {
