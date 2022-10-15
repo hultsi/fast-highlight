@@ -7,28 +7,35 @@ const Enum = require("./Enum.js");
 const TOKENS = new Set([
     '+', '-', '*', '/', '=',
     '<', '>', '(', ')', '{',
-    '}', ":", ";", ".",
+    '}', "[", "]", ":", ";", ".",
     "++", "--", "-=", "+=", "==",
     ">=", "<=", "::", "//", "/*",
     "*/", "===", "!==",
-    " ", "\t",
+    " ", "\t", "\n",
 ]);
 const SPACE = " ";
 const TAB = "\t";
+const LINE_BREAK = "\n";
 const SCOPE_START = "{";
 const SCOPE_END = "}";
 
 const DESCRIPTORS = new Enum().erate([
+    "__UNDEF__",
     "NUMBER",
     "VARIABLE",
+    "NUMBER",
     "FUNCTION",
     "OPERATOR",
     "TYPE",
     "COMMA",
     "BRACKET",
     "CURLY_BRACKET",
+    "SQUARE_BRACKET",
     "KEYWORD",
     "RETURN",
+    "LINE_BREAK",
+    "SEMICOLON",
+    "NULL",
 ]);
 
 const LANGUAGES = new Enum().erate([
@@ -134,6 +141,9 @@ const formatJavaScript = function formatJavascript(tokenValues) {
             case "let":
                 tokenValues[i].descriptor = DESCRIPTORS["TYPE"];
                 break;
+            case "null":
+                tokenValues[i].descriptor = DESCRIPTORS["NULL"];
+                break;
             case "function":
                 // Need to do a bit more complex stuff here
                 // to color code functions properly
@@ -167,6 +177,12 @@ const formatJavaScript = function formatJavascript(tokenValues) {
             case ",":
                 tokenValues[i].descriptor = DESCRIPTORS["COMMA"];
                 break;
+            case ";":
+                tokenValues[i].descriptor = DESCRIPTORS["SEMICOLON"];
+                break;
+            case "\n":
+                tokenValues[i].descriptor = DESCRIPTORS["LINE_BREAK"];
+                break;
             case "(":
                 if (prevWasVariable) {
                     tokenValues[i - 1].descriptor = DESCRIPTORS["FUNCTION"];
@@ -179,6 +195,10 @@ const formatJavaScript = function formatJavascript(tokenValues) {
             case "}":
                 tokenValues[i].descriptor = DESCRIPTORS["CURLY_BRACKET"];
                 break;
+            case "[":
+            case "]":
+                tokenValues[i].descriptor = DESCRIPTORS["SQUARE_BRACKET"];
+                break;
             case "if":
             case "do":
             case "for":
@@ -189,7 +209,7 @@ const formatJavaScript = function formatJavascript(tokenValues) {
                 tokenValues[i].descriptor = DESCRIPTORS["RETURN"];
                 break;
             default:
-                // Here we could have a variable _or_ number
+                /* Here we could have a variable _or_ number */
                 const num = Number(tokenValues[i].value[0]);
                 if (Number.isNaN(num)) {
                     tokenValues[i].descriptor = DESCRIPTORS["VARIABLE"];
@@ -206,14 +226,40 @@ const formatJavaScript = function formatJavascript(tokenValues) {
 }
 
 const formatContent = function formatContent(tokens, lang) {
-    switch (lang) {
-        case LANGUAGES["JAVASCRIPT"]:
-
-            break;
-        default:
-            break;
+    let formattedContent = "";
+    for (let i = 0; i < tokens.length; ++i) {
+        formattedContent += `${tokens[i].prefix}`;
+        switch (tokens[i].descriptor) {
+            case DESCRIPTORS["LINE_BREAK"]:
+                formattedContent += `${tokens[i].value}`;
+                continue;
+            case DESCRIPTORS["TYPE"]:
+            case DESCRIPTORS["NULL"]:
+                formattedContent += `<span class="wcb-global wcb-js-type">`;
+                break;
+            case DESCRIPTORS["FUNCTION"]:
+                formattedContent += `<span class="wcb-global wcb-js-function">`;
+                break;
+            case DESCRIPTORS["KEYWORD"]:
+                formattedContent += `<span class="wcb-global wcb-js-keyword">`;
+                break;
+            case DESCRIPTORS["RETURN"]:
+                formattedContent += `<span class="wcb-global wcb-js-keyword">`;
+                break;
+            case DESCRIPTORS["VARIABLE"]:
+                formattedContent += `<span class="wcb-global wcb-js-variable">`;
+                break;
+            case DESCRIPTORS["NUMBER"]:
+                formattedContent += `<span class="wcb-global wcb-js-number">`;
+                break;
+            default:
+                formattedContent += `<span>`;
+                break;
+        }
+        formattedContent += `${tokens[i].value}`;
+        formattedContent += `</span>`;
     }
-
+    return formattedContent;
 }
 
 const formatContentToCodeblock = function formatContentToCodeblock(content, lang) {
@@ -221,11 +267,7 @@ const formatContentToCodeblock = function formatContentToCodeblock(content, lang
         const tokenValues = tokenize(content);
         return addDescriptors(tokenValues, lang);
     })();
-    return `
-        <pre>
-            <code>\n${formatContent(tokens, lang)}\n</code>
-        </pre>
-    `;
+    return `<pre class="wcb-global"><code>\n${formatContent(tokens, lang)}\n</code>\n</pre>`;
 }
 
 module.exports = {

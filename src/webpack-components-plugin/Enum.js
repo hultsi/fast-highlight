@@ -15,8 +15,12 @@ class Enum {
             }
         } else if (typeof (obj) === "object") {
             // Object input
-            for (const key of Object.keys(obj)) {
-                out[key] = this.use_enumerate_function_instead_of_this.next().value;
+            for (const [key, value] of Object.entries(obj)) {
+                if (value === null) {
+                    out[key] = this.use_enumerate_function_instead_of_this.next().value;
+                } else {
+                    // todo
+                }
             }
         } else {
             return null

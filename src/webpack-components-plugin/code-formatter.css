@@ -1,3 +1,25 @@
-.wcb-js-const {
-    color: rgb(78, 7, 255);
+.wcb-global {
+    background-color: #000;
+    font-size: 20px;
+    color: #FFF;
+}
+
+.wcb-js-type {
+    color: #3C79D1;
+}
+
+.wcb-js-function {
+    color: #DCDCAA;
+}
+
+.wcb-js-keyword {
+    color: #C586C0;
+}
+
+.wcb-js-variable {
+    color: #9CDCFE;
+}
+
+.wcb-js-number {
+    color: #B5CEA8;
 }
