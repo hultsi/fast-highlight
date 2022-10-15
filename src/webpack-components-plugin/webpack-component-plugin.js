@@ -1,6 +1,6 @@
 const fs = require("fs");
 const nodePath = require("path");
-const codeFormatter = require("./code-formatter.js");
+const { formatContentToCodeblock, LANGUAGES } = require("./code-formatter.js");
 
 const genericError = function genericError() {
     const e = new Error();
@@ -252,7 +252,7 @@ class WebpackComponentsPlugin {
             const componentContent = this.getComponentContent(fileName);
 
             // Finally add the content and "move copiedContent pointer"
-            parsedContent += codeFormatter.formatContentToCodeblock(componentContent);
+            parsedContent += formatContentToCodeblock(componentContent, LANGUAGES["JAVASCRIPT"]);
             copiedContent = copiedContent.substring(theActualParsedTag.length);
         }
 
