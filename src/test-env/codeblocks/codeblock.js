@@ -1,5 +1,4 @@
 /**
- * 
  * @param {Array<Number>} xArr 
  * @param {Array<Number>} yArr 
  * @returns {Number}

@@ -17,10 +17,7 @@ module.exports = {
         maxEntrypointSize: 512000,
         maxAssetSize: 512000
     },
-    devServer: {
-        contentBase: ["./src"],
-        watchContentBase: true
-    },
+
     plugins: [
         new WebpackComponents({
             // todo: Create exclude watch list here maybe.

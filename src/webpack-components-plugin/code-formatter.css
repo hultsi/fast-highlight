@@ -8,10 +8,6 @@
     color: #3C79D1;
 }
 
-.wcb-js-function {
-    color: #DCDCAA;
-}
-
 .wcb-js-keyword {
     color: #C586C0;
 }
@@ -20,6 +16,14 @@
     color: #9CDCFE;
 }
 
+.wcb-js-function {
+    color: #DCDCAA;
+}
+
 .wcb-js-number {
     color: #B5CEA8;
+}
+
+.wcb-js-comment {
+    color: #41a70a;
 }
