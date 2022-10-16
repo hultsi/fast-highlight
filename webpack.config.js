@@ -35,6 +35,10 @@ module.exports = {
                             `let`, `const`, `var`, `function`,
                             `static`, `null`,
                         ]),
+                        keywords: new Set([
+                            `for`, `while`, `return`,
+                            `if`, `else`, `of`, `in`, `new`,
+                        ]),
                     },
                     cpp: {
                         types: new Set([

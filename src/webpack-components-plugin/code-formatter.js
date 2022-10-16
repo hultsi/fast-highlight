@@ -1,72 +1,7 @@
 const Enum = require("./Enum.js");
+const { SPACE, LINE_BREAK, TokenFactory } = require("./TokenFactory.js");
 
-/**
- * All of these will be tokenized on
- * top of variables (e.g., letter combinations without spaces)
- */
-const SPACE = " ";
-const TAB = "\t";
-const LINE_BREAK = "\n";
-const SINGLE_LINE_COMMENT = "//";
-const MULTI_LINE_COMMENT_START = "/*";
-const MULTI_LINE_COMMENT_END = "*/";
-const SCOPE_START = "{";
-const SCOPE_END = "}";
-
-// Todo: these might have to be language specific
-//       e.g., grab these from config file
-const TYPES = new Set([
-    `let`, `const`, `var`, `function`,
-    `static`, `null`,
-]);
-const KEYWORDS = new Set([
-    `for`, `while`, `return`,
-    `if`, `else`, `of`, `in`, `new`,
-]);
-const BASIC_OPERATORS = new Set([
-    `+`, `-`, `*`, `/`, `=`,
-    `++`, `--`, `-=`, `+=`, `**`,
-    `&`, `|`, `&&`, `||`,
-    `:`, `;`, `.`, `,`, `::`,
-]);
-const COMPARISON_OPERATORS = new Set([
-    `==`, `!=`, `>=`, `<`, `>`,
-    `<=`, `===`, `!==`,
-]);
-const BRACKETS = new Set([
-    `(`, `)`, `{`,
-    `}`, `[`, `]`,
-]);
-const COMMENTS = new Set([
-    SINGLE_LINE_COMMENT,
-    MULTI_LINE_COMMENT_START,
-    MULTI_LINE_COMMENT_END,
-]);
-const OTHERS = new Set([
-    SPACE, TAB, LINE_BREAK,
-]);
-const CLASSES = new Set([
-    // These are user defined only
-]);
-const TOKENS = new Set([
-    ...TYPES,
-    ...KEYWORDS,
-    ...BASIC_OPERATORS,
-    ...COMPARISON_OPERATORS,
-    ...BRACKETS,
-    ...COMMENTS,
-    ...OTHERS,
-    ...CLASSES,
-]);
-const MAX_TOKEN_LENGTH = (() => {
-    let maxLen = 1;
-    for (const token of TOKENS) {
-        if (token.length > maxLen) {
-            maxLen = token.length;
-        }
-    }
-    return maxLen;
-})();
+const TOKEN_FACTORY = new TokenFactory();
 
 const DESCRIPTORS = new Enum().erate([
     "__UNDEF__",
@@ -114,6 +49,15 @@ const isValidChar = function isValidChar(c) {
  * @returns array
  */
 const tokenize = function tokenize(cmd) {
+    const MAX_TOKEN_LENGTH = (() => {
+        let maxLen = 1;
+        for (const token of TOKEN_FACTORY.tokens) {
+            if (token.length > maxLen) {
+                maxLen = token.length;
+            }
+        }
+        return maxLen;
+    })();
     // Add three extra spaces to cmd to prevent segmentation fault in the loop (i + 3)
     // Though .substring handles that for us but it's good practice anyway
     cmd = cmd.replaceAll(/\r/g, '') + "   ";
@@ -128,9 +72,9 @@ const tokenize = function tokenize(cmd) {
         let tokenMatchFound = true;
         for (let len = MAX_TOKEN_LENGTH; len > 0; --len) {
             const token = cmd.substring(i, i + len);
-            if (TOKENS.has(token)) {
+            if (TOKEN_FACTORY.tokens.has(token)) {
                 // Can't use "token" variable for comment parsing
-                if (cmd.substring(i, i + len) === SINGLE_LINE_COMMENT) {
+                if (cmd.substring(i, i + len) === TOKEN_FACTORY.singleLineComment) {
                     while (true) {
                         if (cmd[i] === LINE_BREAK) {
                             break;
@@ -139,9 +83,9 @@ const tokenize = function tokenize(cmd) {
                         ++i;
                     }
                     --i;
-                } else if (cmd.substring(i, i + len) === MULTI_LINE_COMMENT_START) {
+                } else if (cmd.substring(i, i + len) === TOKEN_FACTORY.multiLineCommentStart) {
                     while (true) {
-                        if (cmd.substring(i, i + len) === MULTI_LINE_COMMENT_END) {
+                        if (cmd.substring(i, i + len) === TOKEN_FACTORY.multiLineCommentEnd) {
                             tokenArr[pos].value += cmd.substring(i, i + len);
                             break;
                         }
@@ -150,7 +94,7 @@ const tokenize = function tokenize(cmd) {
                     }
                     ++i;
                 } else {
-                    if (!prevWasToken && (TYPES.has(token) || KEYWORDS.has(token))) {
+                    if (!prevWasToken && (TOKEN_FACTORY.types.has(token) || TOKEN_FACTORY.keywords.has(token))) {
                         // types and keywords require a space after a _non_ token
                         continue;
                     }
@@ -160,9 +104,9 @@ const tokenize = function tokenize(cmd) {
                         --pos;
                         break;
                     }
-                    if (token === SCOPE_START) {
+                    if (token === TOKEN_FACTORY.scopeStart) {
                         ++scope;
-                    } else if (token === SCOPE_END) {
+                    } else if (token === TOKEN_FACTORY.scopeEnd) {
                         --scope;
                     }
                     tokenArr[pos].value = token;
@@ -204,29 +148,29 @@ const formatJavaScript = function formatJavascript(tokenValues) {
     let prevWasVariable = false;
     for (let i = 0; i < len; ++i) {
         const token = tokenValues[i].value;
-        if (TYPES.has(token)) {
+        if (TOKEN_FACTORY.types.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["TYPE"]);
             if (i > 0 && tokenValues[i - 1].value === "=") {
                 if (tokenValues[i - 2].descriptor.has(DESCRIPTORS["VARIABLE"])) {
                     tokenValues[i - 2].descriptor.add(DESCRIPTORS["FUNCTION"]);
                 }
             }
-        } else if (KEYWORDS.has(token)) {
+        } else if (TOKEN_FACTORY.keywords.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["KEYWORD"]);
-        } else if (BASIC_OPERATORS.has(token)) {
+        } else if (TOKEN_FACTORY.basicOperators.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
-        } else if (COMPARISON_OPERATORS.has(token)) {
+        } else if (TOKEN_FACTORY.comparisonOperators.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
-        } else if (BRACKETS.has(token)) {
+        } else if (TOKEN_FACTORY.brackets.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["BRACKET"]);
             if (prevWasVariable && token === "(") {
                 tokenValues[i - 1].descriptor.add(DESCRIPTORS["FUNCTION"]);
             }
-        } else if (OTHERS.has(token)) {
+        } else if (TOKEN_FACTORY.others.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["__UNDEF__"]);
         } else {
             const isComment = (() => {
-                for (const commentToken of COMMENTS) {
+                for (const commentToken of TOKEN_FACTORY.comments) {
                     const len = commentToken.length;
                     if (token.substring(0, len) === commentToken) {
                         return true;
@@ -305,27 +249,16 @@ const createSpanOpenTag = function createSpanOpenTag(descriptors) {
     return `${content}">`; // Close span
 }
 
-const initializeTokenSets = function initializeTokenSets(tokenSets) {
-    if (tokenSets.types) {
-        TYPES.clear();
-        for (const token of tokenSets.types) {
-            TYPES.add(token);
-        }
-    }
-    if (tokenSets.keywords) {
-        KEYWORDS.clear();
-        for (const token of tokenSets.keywords) {
-            KEYWORDS.add(token);
-        }
-    }
-}
+const formatContentToCodeblock = function formatContentToCodeblock(content, tokenSets, lang) {
+    TOKEN_FACTORY.setTypes(tokenSets.types);
+    TOKEN_FACTORY.setKeywords(tokenSets.keywords);
+    TOKEN_FACTORY.setTokens();
 
-const formatContentToCodeblock = function formatContentToCodeblock(content, tokenSets) {
-    initializeTokenSets(tokenSets);
     const tokens = (() => {
-        const tokenValues = tokenize(content, tokenSets);
+        const tokenValues = tokenize(content);
         return addDescriptors(tokenValues);
     })();
+
     return `${formatContent(tokens)}`;
 }
 

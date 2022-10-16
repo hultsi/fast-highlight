@@ -253,19 +253,19 @@ class WebpackComponentsPlugin {
             const componentContent = this.getComponentContent(fileName);
 
             // Finally add the content and "move copiedContent pointer"
-            const tokenSets = (() => {
+            const [tokenSets, lang] = (() => {
                 const splittedFileName = fileName.split(".");
                 const len = splittedFileName.length;
                 switch (splittedFileName[len - 1]) {
                     case "js":
-                        return this.codeblockFormatting.javascript;
+                        return [this.codeblockFormatting.javascript, "JAVASCRIPT"];
                     case "cpp":
-                        return this.codeblockFormatting.cpp;
+                        return [this.codeblockFormatting.cpp, "C++"];
                     default:
                         return null;
                 }
             })();
-            parsedContent += formatContentToCodeblock(componentContent, tokenSets);
+            parsedContent += formatContentToCodeblock(componentContent, tokenSets, LANGUAGES[lang]);
             copiedContent = copiedContent.substring(theActualParsedTag.length);
         }
 
