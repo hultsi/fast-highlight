@@ -97,7 +97,8 @@ class WebpackComponentsPlugin {
             this.files[i] = { in: relativeToAbsolutePath(args.sources[i].in), out: args.sources[i].out };
         }
 
-        this.codeblockCssPath = args.codeblockCss.out;
+        this.codeblockCssPath = args.codeblockSettings.css.out;
+        this.codeblockFormatting = args.codeblockSettings.formatting;
     }
 
     isIncludedInBuild = function isIncludedInBuild(path) {
@@ -223,7 +224,7 @@ class WebpackComponentsPlugin {
     }
 
     replaceCodeComponents = function replaceCodeComponents(fileContent) {
-        const fileExt = "js";
+        const fileExt = "(js|cpp)";
         const componentTag = new RegExp(`(<component-)(.*)([.]${fileExt}/>)`);
         const componentTagEnd = new RegExp(`/>`);
 
@@ -252,7 +253,19 @@ class WebpackComponentsPlugin {
             const componentContent = this.getComponentContent(fileName);
 
             // Finally add the content and "move copiedContent pointer"
-            parsedContent += formatContentToCodeblock(componentContent, LANGUAGES["JAVASCRIPT"]);
+            const tokenSets = (() => {
+                const splittedFileName = fileName.split(".");
+                const len = splittedFileName.length;
+                switch (splittedFileName[len - 1]) {
+                    case "js":
+                        return this.codeblockFormatting.javascript;
+                    case "cpp":
+                        return this.codeblockFormatting.cpp;
+                    default:
+                        return null;
+                }
+            })();
+            parsedContent += formatContentToCodeblock(componentContent, tokenSets);
             copiedContent = copiedContent.substring(theActualParsedTag.length);
         }
 

@@ -10,23 +10,32 @@ const LINE_BREAK = "\n";
 const SINGLE_LINE_COMMENT = "//";
 const MULTI_LINE_COMMENT_START = "/*";
 const MULTI_LINE_COMMENT_END = "*/";
-// Todo: thanks to python, this is not this easy
 const SCOPE_START = "{";
 const SCOPE_END = "}";
 
 // Todo: these might have to be language specific
+//       e.g., grab these from config file
+const TYPES = new Set([
+    `let`, `const`, `var`, `function`,
+    `static`, `null`,
+]);
+const KEYWORDS = new Set([
+    `for`, `while`, `return`,
+    `if`, `else`, `of`, `in`, `new`,
+]);
 const BASIC_OPERATORS = new Set([
-    "+", "-", "*", "/", "=",
-    "++", "--", "-=", "+=", "**",
-    "&", "|", "&&", "||",
+    `+`, `-`, `*`, `/`, `=`,
+    `++`, `--`, `-=`, `+=`, `**`,
+    `&`, `|`, `&&`, `||`,
+    `:`, `;`, `.`, `,`, `::`,
 ]);
 const COMPARISON_OPERATORS = new Set([
-    "==", "!=", ">=", '<', '>',
-    "<=", "===", "!==",
+    `==`, `!=`, `>=`, `<`, `>`,
+    `<=`, `===`, `!==`,
 ]);
 const BRACKETS = new Set([
-    '(', ')', '{',
-    '}', "[", "]",
+    `(`, `)`, `{`,
+    `}`, `[`, `]`,
 ]);
 const COMMENTS = new Set([
     SINGLE_LINE_COMMENT,
@@ -34,15 +43,20 @@ const COMMENTS = new Set([
     MULTI_LINE_COMMENT_END,
 ]);
 const OTHERS = new Set([
-    ":", ";", ".",
-    TAB, LINE_BREAK,
+    SPACE, TAB, LINE_BREAK,
+]);
+const CLASSES = new Set([
+    // These are user defined only
 ]);
 const TOKENS = new Set([
+    ...TYPES,
+    ...KEYWORDS,
     ...BASIC_OPERATORS,
     ...COMPARISON_OPERATORS,
     ...BRACKETS,
     ...COMMENTS,
     ...OTHERS,
+    ...CLASSES,
 ]);
 const MAX_TOKEN_LENGTH = (() => {
     let maxLen = 1;
@@ -65,6 +79,7 @@ const DESCRIPTORS = new Enum().erate([
     "BRACKET",
     "CURLY_BRACKET",
     "SQUARE_BRACKET",
+    "COMMENT",
     "SINGLE_LINE_COMMENT",
     "MULTI_LINE_COMMENT",
     "KEYWORD",
@@ -73,7 +88,6 @@ const DESCRIPTORS = new Enum().erate([
     "SEMICOLON",
     "NULL",
     "UNDEFINED",
-    "COMMENT",
 ]);
 const LANGUAGES = new Enum().erate([
     "JAVASCRIPT",
@@ -105,20 +119,17 @@ const tokenize = function tokenize(cmd) {
     cmd = cmd.replaceAll(/\r/g, '') + "   ";
     const tokenArr = new Array(cmd.length);
     for (let i = 0; i < tokenArr.length; ++i) {
-        tokenArr[i] = { value: "", prefix: "", descriptor: new Set(), scope: 0 };
+        tokenArr[i] = { value: '', prefix: '', descriptor: new Set(), scope: 0 };
     }
-    let prevWasOperator = true;
+    let prevWasToken = true;
     let pos = 0;
     let scope = 0;
     for (let i = 0; i < cmd.length; ++i) {
-        if (cmd[i] === SPACE) {
-            tokenArr[pos].prefix += SPACE;
-            prevWasOperator = true;
-            continue;
-        }
         let tokenMatchFound = true;
         for (let len = MAX_TOKEN_LENGTH; len > 0; --len) {
-            if (TOKENS.has(cmd.substring(i, i + len))) {
+            const token = cmd.substring(i, i + len);
+            if (TOKENS.has(token)) {
+                // Can't use "token" variable for comment parsing
                 if (cmd.substring(i, i + len) === SINGLE_LINE_COMMENT) {
                     while (true) {
                         if (cmd[i] === LINE_BREAK) {
@@ -139,18 +150,27 @@ const tokenize = function tokenize(cmd) {
                     }
                     ++i;
                 } else {
-                    if (cmd.substring(i, i + len) === SCOPE_START) {
+                    if (!prevWasToken && (TYPES.has(token) || KEYWORDS.has(token))) {
+                        // types and keywords require a space after a _non_ token
+                        continue;
+                    }
+                    if (token === SPACE) {
+                        tokenArr[pos].prefix += SPACE;
+                        prevWasToken = true;
+                        --pos;
+                        break;
+                    }
+                    if (token === SCOPE_START) {
                         ++scope;
-                    } else if (cmd.substring(i, i + len) === SCOPE_END) {
+                    } else if (token === SCOPE_END) {
                         --scope;
                     }
-
-                    tokenArr[pos].value = cmd.substring(i, i + len);
+                    tokenArr[pos].value = token;
                     i += len - 1;
                 }
 
                 tokenArr[pos].scope = scope;
-                prevWasOperator = true;
+                prevWasToken = true;
                 break;
             } else {
                 tokenMatchFound = len !== 1;
@@ -158,14 +178,14 @@ const tokenize = function tokenize(cmd) {
         }
 
         if (!tokenMatchFound) {
-            if (prevWasOperator) {
+            if (prevWasToken) {
                 tokenArr[pos].value = cmd[i];
             } else {
                 --pos;
                 tokenArr[pos].value += cmd[i];
             }
             tokenArr[pos].scope = scope;
-            prevWasOperator = false;
+            prevWasToken = false;
         }
         ++pos;
     }
@@ -175,12 +195,7 @@ const tokenize = function tokenize(cmd) {
 
 const addDescriptors = function addDescriptors(tokenValues, lang) {
     // Need to know the language here
-    switch (lang) {
-        case LANGUAGES["JAVASCRIPT"]:
-            return formatJavaScript(tokenValues);
-        default:
-            return tokenValues;
-    }
+    return formatJavaScript(tokenValues);
 }
 
 const formatJavaScript = function formatJavascript(tokenValues) {
@@ -188,92 +203,50 @@ const formatJavaScript = function formatJavascript(tokenValues) {
     const len = tokenValues.length;
     let prevWasVariable = false;
     for (let i = 0; i < len; ++i) {
-        switch (tokenValues[i].value) {
-            case "const":
-            case "let":
-                tokenValues[i].descriptor.add(DESCRIPTORS["TYPE"]);
-                break;
-            case "undefined":
-                tokenValues[i].descriptor.add(DESCRIPTORS["UNDEFINED"]);
-                break;
-            case "null":
-                tokenValues[i].descriptor.add(DESCRIPTORS["NULL"]);
-                break;
-            case "function":
-                // Need to do a bit more complex stuff here
-                // to color code functions properly
-                tokenValues[i].descriptor.add(DESCRIPTORS["TYPE"]);
-                // TODO: this indexing is temp hack
-                //       there doesn't need to be a space between
-                //       variable = function
-                if (tokenValues[i - 1].value === "=") {
-                    if (tokenValues[i - 2].descriptor.has(DESCRIPTORS["VARIABLE"])) {
-                        tokenValues[i - 2].descriptor.add(DESCRIPTORS["FUNCTION"]);
+        const token = tokenValues[i].value;
+        if (TYPES.has(token)) {
+            tokenValues[i].descriptor.add(DESCRIPTORS["TYPE"]);
+            if (i > 0 && tokenValues[i - 1].value === "=") {
+                if (tokenValues[i - 2].descriptor.has(DESCRIPTORS["VARIABLE"])) {
+                    tokenValues[i - 2].descriptor.add(DESCRIPTORS["FUNCTION"]);
+                }
+            }
+        } else if (KEYWORDS.has(token)) {
+            tokenValues[i].descriptor.add(DESCRIPTORS["KEYWORD"]);
+        } else if (BASIC_OPERATORS.has(token)) {
+            tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
+        } else if (COMPARISON_OPERATORS.has(token)) {
+            tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
+        } else if (BRACKETS.has(token)) {
+            tokenValues[i].descriptor.add(DESCRIPTORS["BRACKET"]);
+            if (prevWasVariable && token === "(") {
+                tokenValues[i - 1].descriptor.add(DESCRIPTORS["FUNCTION"]);
+            }
+        } else if (OTHERS.has(token)) {
+            tokenValues[i].descriptor.add(DESCRIPTORS["__UNDEF__"]);
+        } else {
+            const isComment = (() => {
+                for (const commentToken of COMMENTS) {
+                    const len = commentToken.length;
+                    if (token.substring(0, len) === commentToken) {
+                        return true;
                     }
                 }
-                break;
-            case ",":
-                tokenValues[i].descriptor.add(DESCRIPTORS["COMMA"]);
-                break;
-            case ";":
-                tokenValues[i].descriptor.add(DESCRIPTORS["SEMICOLON"]);
-                break;
-            case "\n":
-                tokenValues[i].descriptor.add(DESCRIPTORS["LINE_BREAK"]);
-                break;
-            case "(":
-                if (prevWasVariable) {
-                    tokenValues[i - 1].descriptor.add(DESCRIPTORS["FUNCTION"]);
-                }
-            /* FALLTHROUGH */
-            case ")":
-                tokenValues[i].descriptor.add(DESCRIPTORS["BRACKET"]);
-                break;
-            case "{":
-            case "}":
-                tokenValues[i].descriptor.add(DESCRIPTORS["BRACKET"]);
-                tokenValues[i].descriptor.add(DESCRIPTORS["CURLY_BRACKET"]);
-                break;
-            case "[":
-            case "]":
-                tokenValues[i].descriptor.add(DESCRIPTORS["BRACKET"]);
-                tokenValues[i].descriptor.add(DESCRIPTORS["SQUARE_BRACKET"]);
-                break;
-            case "if":
-            case "do":
-            case "for":
-            case "while":
-                tokenValues[i].descriptor.add(DESCRIPTORS["KEYWORD"]);
-                break;
-            case "return":
-                tokenValues[i].descriptor.add(DESCRIPTORS["KEYWORD"]);
-                tokenValues[i].descriptor.add(DESCRIPTORS["RETURN"]);
-                break;
-            default:
-                // Check for operators
-                if (BASIC_OPERATORS.has(tokenValues[i].value) ||
-                    COMPARISON_OPERATORS.has(tokenValues[i].value)
-                ) {
-                    tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
-                    break;
-                }
+                return false;
+            })();
+            if (isComment) {
+                tokenValues[i].descriptor.add(DESCRIPTORS["COMMENT"]);
+                continue;
+            }
 
-                // Check for comment
-                if (COMMENTS.has(tokenValues[i].value.substring(0, 2))) {
-                    tokenValues[i].descriptor.add(DESCRIPTORS["COMMENT"]);
-                    break;
-                }
-
-                /* Check for variable _or_ number */
-                const num = Number(tokenValues[i].value[0]);
-                if (Number.isNaN(num)) {
-                    tokenValues[i].descriptor.add(DESCRIPTORS["VARIABLE"]);
-                    prevWasVariable = true;
-                    continue;
-                } else {
-                    tokenValues[i].descriptor.add(DESCRIPTORS["NUMBER"]);
-                }
-                break;
+            const num = Number(token[0]);
+            if (Number.isNaN(num)) {
+                tokenValues[i].descriptor.add(DESCRIPTORS["VARIABLE"]);
+                prevWasVariable = true;
+                continue;
+            } else {
+                tokenValues[i].descriptor.add(DESCRIPTORS["NUMBER"]);
+            }
         }
         prevWasVariable = false;
     }
@@ -332,10 +305,26 @@ const createSpanOpenTag = function createSpanOpenTag(descriptors) {
     return `${content}">`; // Close span
 }
 
-const formatContentToCodeblock = function formatContentToCodeblock(content, lang) {
+const initializeTokenSets = function initializeTokenSets(tokenSets) {
+    if (tokenSets.types) {
+        TYPES.clear();
+        for (const token of tokenSets.types) {
+            TYPES.add(token);
+        }
+    }
+    if (tokenSets.keywords) {
+        KEYWORDS.clear();
+        for (const token of tokenSets.keywords) {
+            KEYWORDS.add(token);
+        }
+    }
+}
+
+const formatContentToCodeblock = function formatContentToCodeblock(content, tokenSets) {
+    initializeTokenSets(tokenSets);
     const tokens = (() => {
-        const tokenValues = tokenize(content);
-        return addDescriptors(tokenValues, lang);
+        const tokenValues = tokenize(content, tokenSets);
+        return addDescriptors(tokenValues);
     })();
     return `${formatContent(tokens)}`;
 }

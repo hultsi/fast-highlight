@@ -27,7 +27,30 @@ module.exports = {
             sources: [
                 { in: "./src/test-env/index.html", out: "./index.html" }
             ],
-            codeblockCss: { out: "./css/code-formatter.css" }
+            codeblockSettings: {
+                css: { out: "./css/code-formatter.css" },
+                formatting: {
+                    javascript: {
+                        types: new Set([
+                            `let`, `const`, `var`, `function`,
+                            `static`, `null`,
+                        ]),
+                    },
+                    cpp: {
+                        types: new Set([
+                            `const`, `float`, `static`, `nullptr`,
+                        ]),
+                        keywords: new Set([
+                            `for`, `while`, `return`,
+                            `if`, `else`, `new`, `delete`,
+                            `#ifdef`, `#endif`, `[[maybe_unused]]`
+                        ])
+                    },
+                    python: {
+
+                    }
+                }
+            }
         })
     ]
 };
