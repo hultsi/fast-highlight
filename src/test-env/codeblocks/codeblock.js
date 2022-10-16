@@ -1,4 +1,11 @@
+/**
+ * 
+ * @param {Array<Number>} xArr 
+ * @param {Array<Number>} yArr 
+ * @returns {Number}
+ */
 const covar = function covar(xArr, yArr) {
+	// Does this colorize properly?
 	if (xArr.length !== yArr.length)
 		return null;
 	const mX = mean(xArr);

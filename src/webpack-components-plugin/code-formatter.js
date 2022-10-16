@@ -4,20 +4,33 @@ const Enum = require("./Enum.js");
  * All of these will be tokenized on
  * top of variables (e.g., letter combinations without spaces)
  */
-const TOKENS = new Set([
-    '+', '-', '*', '/', '=',
-    '<', '>', '(', ')', '{',
-    '}', "[", "]", ":", ";", ".",
-    "++", "--", "-=", "+=", "==",
-    ">=", "<=", "::", "//", "/*",
-    "*/", "===", "!==",
-    " ", "\t", "\n",
-]);
 const SPACE = " ";
 const TAB = "\t";
 const LINE_BREAK = "\n";
 const SCOPE_START = "{";
 const SCOPE_END = "}";
+const SINGLE_LINE_COMMENT = "//";
+const MULTI_LINE_COMMENT_START = "/*";
+const MULTI_LINE_COMMENT_END = "*/";
+
+// Todo: these might have to be language specific
+const BASIC_OPERATORS = new Set([
+    "+", "-", "*", "/", "=",
+    "++", "--", "-=", "+=", "**",
+]);
+const COMPARISON_OPERATORS = new Set([
+    "==", "!=", ">=", '<', '>',
+    "<=", "===", "!==",
+]);
+const TOKENS = new Set([
+    ...BASIC_OPERATORS,
+    ...COMPARISON_OPERATORS,
+    '(', ')', '{',
+    '}', "[", "]", ":", ";", ".",
+    "::", "//", "/*", "*/",
+    "//", "/*", "*/",
+    " ", "\t", "\n",
+]);
 
 const DESCRIPTORS = new Enum().erate([
     "__UNDEF__",
@@ -29,6 +42,8 @@ const DESCRIPTORS = new Enum().erate([
     "TYPE",
     "COMMA",
     "BRACKET",
+    "SINGLE_LINE_COMMENT",
+    "MULTI_LINE_COMMENT",
     "CURLY_BRACKET",
     "SQUARE_BRACKET",
     "KEYWORD",
@@ -80,10 +95,31 @@ const tokenize = function tokenize(cmd) {
             prevWasOperator = true;
             i += 2;
         } else if (TOKENS.has(cmd.substring(i, i + 2))) {
-            tokenArr[pos].value = cmd.substring(i, i + 2);
+            if (cmd.substring(i, i + 2) === SINGLE_LINE_COMMENT) {
+                while (true) {
+                    if (cmd[i] === LINE_BREAK) {
+                        break;
+                    }
+                    tokenArr[pos].value += cmd[i];
+                    ++i;
+                }
+                --i;
+            } else if (cmd.substring(i, i + 2) === MULTI_LINE_COMMENT_START) {
+                while (true) {
+                    if (cmd.substring(i, i + 2) === MULTI_LINE_COMMENT_END) {
+                        tokenArr[pos].value += cmd.substring(i, i + 2);
+                        break;
+                    }
+                    tokenArr[pos].value += cmd[i];
+                    ++i;
+                }
+                ++i;
+            } else {
+                tokenArr[pos].value = cmd.substring(i, i + 2);
+                i += 1;
+            }
             tokenArr[pos].scope = scope;
             prevWasOperator = true;
-            i += 1;
         } else if (TOKENS.has(cmd[i])) {
             if (cmd[i] === SCOPE_START) {
                 ++scope;
@@ -133,6 +169,7 @@ const addDescriptors = function addDescriptors(tokenValues, lang) {
 }
 
 const formatJavaScript = function formatJavascript(tokenValues) {
+    // Todo: this should be cleaned up somehow
     const len = tokenValues.length;
     let prevWasVariable = false;
     for (let i = 0; i < len; ++i) {
@@ -153,26 +190,6 @@ const formatJavaScript = function formatJavascript(tokenValues) {
                         tokenValues[i - 2].descriptor = DESCRIPTORS["FUNCTION"];
                     }
                 }
-                break;
-            case "=":
-            case "+":
-            case "-":
-            case "*":
-            case "/":
-            case "**":
-            case "++":
-            case "--":
-            case "+=":
-            case "-=":
-            case "==":
-            case "!=":
-            case "<":
-            case ">":
-            case ">=":
-            case "<=":
-            case "===":
-            case "!==":
-                tokenValues[i].descriptor = DESCRIPTORS["OPERATOR"];
                 break;
             case ",":
                 tokenValues[i].descriptor = DESCRIPTORS["COMMA"];
@@ -209,7 +226,15 @@ const formatJavaScript = function formatJavascript(tokenValues) {
                 tokenValues[i].descriptor = DESCRIPTORS["RETURN"];
                 break;
             default:
-                /* Here we could have a variable _or_ number */
+                // Check operators
+                if (BASIC_OPERATORS.has(tokenValues[i].value) ||
+                    COMPARISON_OPERATORS.has(tokenValues[i].value)
+                ) {
+                    tokenValues[i].descriptor = DESCRIPTORS["OPERATOR"];
+                    break;
+                }
+
+                /* Check variable _or_ number */
                 const num = Number(tokenValues[i].value[0]);
                 if (Number.isNaN(num)) {
                     tokenValues[i].descriptor = DESCRIPTORS["VARIABLE"];
