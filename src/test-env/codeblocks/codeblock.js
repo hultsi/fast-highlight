@@ -7,6 +7,10 @@ const covar = function covar(xArr, yArr) {
 	// Does this colorize properly?
 	if (xArr.length !== yArr.length)
 		return null;
+	const multiLineString = `
+		Hello
+		World
+	`;
 	const mX = mean(xArr);
 	const mY = mean(yArr);
 	let ss = 0;

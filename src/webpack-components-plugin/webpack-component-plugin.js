@@ -1,6 +1,7 @@
 const fs = require("fs");
 const nodePath = require("path");
-const { formatContentToCodeblock, LANGUAGES } = require("./code-formatter.js");
+const { formatContentToCodeblock } = require("./code-formatter.js");
+const { LANGUAGES } = require("./TokenFactory.js");
 
 const genericError = function genericError() {
     const e = new Error();
@@ -224,7 +225,7 @@ class WebpackComponentsPlugin {
     }
 
     replaceCodeComponents = function replaceCodeComponents(fileContent) {
-        const fileExt = "(js|cpp)";
+        const fileExt = "(js|cpp|py)";
         const componentTag = new RegExp(`(<component-)(.*)([.]${fileExt}/>)`);
         const componentTagEnd = new RegExp(`/>`);
 
@@ -261,6 +262,8 @@ class WebpackComponentsPlugin {
                         return [this.codeblockFormatting.javascript, "JAVASCRIPT"];
                     case "cpp":
                         return [this.codeblockFormatting.cpp, "C++"];
+                    case "py":
+                        return [this.codeblockFormatting.python, "PYTHON"];
                     default:
                         return null;
                 }

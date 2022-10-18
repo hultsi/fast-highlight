@@ -44,14 +44,11 @@ module.exports = {
                         types: new Set([
                             `const`, `float`, `static`, `nullptr`,
                         ]),
-                        keywords: new Set([
-                            `for`, `while`, `return`,
-                            `if`, `else`, `new`, `delete`,
-                            `#ifdef`, `#endif`, `[[maybe_unused]]`
-                        ])
                     },
                     python: {
-
+                        // comments: {
+                        //     singleLine: "#"
+                        // }
                     }
                 }
             }

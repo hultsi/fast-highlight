@@ -1,5 +1,10 @@
 const Enum = require("./Enum.js");
-const { SPACE, LINE_BREAK, TokenFactory } = require("./TokenFactory.js");
+const {
+    LANGUAGES,
+    SPACE,
+    LINE_BREAK,
+    TokenFactory,
+} = require("./TokenFactory.js");
 
 const TOKEN_FACTORY = new TokenFactory();
 
@@ -8,8 +13,10 @@ const DESCRIPTORS = new Enum().erate([
     "NUMBER",
     "VARIABLE",
     "FUNCTION",
+    "CLASS",
     "OPERATOR",
     "TYPE",
+    "STRING",
     "COMMA",
     "BRACKET",
     "CURLY_BRACKET",
@@ -23,11 +30,6 @@ const DESCRIPTORS = new Enum().erate([
     "SEMICOLON",
     "NULL",
     "UNDEFINED",
-]);
-const LANGUAGES = new Enum().erate([
-    "JAVASCRIPT",
-    "C++",
-    "PYTHON",
 ]);
 
 /**
@@ -74,23 +76,35 @@ const tokenize = function tokenize(cmd) {
             const token = cmd.substring(i, i + len);
             if (TOKEN_FACTORY.tokens.has(token)) {
                 // Can't use "token" variable for comment parsing
-                if (cmd.substring(i, i + len) === TOKEN_FACTORY.singleLineComment) {
+                if (TOKEN_FACTORY.strings.has(cmd.substring(i, i + len))) {
+                    const isSingleLine = TOKEN_FACTORY.stringHolder.singleLine.some(el => el === token);
                     while (true) {
+                        tokenArr[pos].value += cmd[i];
+                        ++i;
+                        if (cmd[i] === token) {
+                            tokenArr[pos].value += cmd[i];
+                            break;
+                        } else if (cmd[i] === LINE_BREAK && isSingleLine) {
+                            break;
+                        }
+                    }
+                } else if (cmd.substring(i, i + len) === TOKEN_FACTORY.commentHolder.singleLine) {
+                    while (true) {
+                        tokenArr[pos].value += cmd[i];
+                        ++i;
                         if (cmd[i] === LINE_BREAK) {
                             break;
                         }
-                        tokenArr[pos].value += cmd[i];
-                        ++i;
                     }
                     --i;
-                } else if (cmd.substring(i, i + len) === TOKEN_FACTORY.multiLineCommentStart) {
+                } else if (cmd.substring(i, i + len) === TOKEN_FACTORY.commentHolder.multiLineStart) {
                     while (true) {
-                        if (cmd.substring(i, i + len) === TOKEN_FACTORY.multiLineCommentEnd) {
+                        tokenArr[pos].value += cmd[i];
+                        ++i;
+                        if (cmd.substring(i, i + len) === TOKEN_FACTORY.commentHolder.multiLineEnd) {
                             tokenArr[pos].value += cmd.substring(i, i + len);
                             break;
                         }
-                        tokenArr[pos].value += cmd[i];
-                        ++i;
                     }
                     ++i;
                 } else {
@@ -137,12 +151,7 @@ const tokenize = function tokenize(cmd) {
     return tokenArr.filter(el => el.value !== '' && el.value !== SPACE);
 }
 
-const addDescriptors = function addDescriptors(tokenValues, lang) {
-    // Need to know the language here
-    return formatJavaScript(tokenValues);
-}
-
-const formatJavaScript = function formatJavascript(tokenValues) {
+const addDescriptors = function addDescriptors(tokenValues) {
     // Todo: this should be cleaned up somehow
     const len = tokenValues.length;
     let prevWasVariable = false;
@@ -166,13 +175,21 @@ const formatJavaScript = function formatJavascript(tokenValues) {
             if (prevWasVariable && token === "(") {
                 tokenValues[i - 1].descriptor.add(DESCRIPTORS["FUNCTION"]);
             }
+        } else if (TOKEN_FACTORY.classes.has(token)) {
+            tokenValues[i].descriptor.add(DESCRIPTORS["CLASS"]);
         } else if (TOKEN_FACTORY.others.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["__UNDEF__"]);
         } else {
+            const isString = TOKEN_FACTORY.strings.has(token[0]);
+            if (isString) {
+                tokenValues[i].descriptor.add(DESCRIPTORS["STRING"]);
+                continue;
+            }
+
             const isComment = (() => {
                 for (const commentToken of TOKEN_FACTORY.comments) {
                     const len = commentToken.length;
-                    if (token.substring(0, len) === commentToken) {
+                    if (len > 0 && token.substring(0, len) === commentToken) {
                         return true;
                     }
                 }
@@ -236,6 +253,12 @@ const createSpanOpenTag = function createSpanOpenTag(descriptors) {
             case DESCRIPTORS["VARIABLE"]:
                 content += `${SPACE}wcb-js-variable`;
                 break;
+            case DESCRIPTORS["STRING"]:
+                content += `${SPACE}wcb-js-string`;
+                break;
+            case DESCRIPTORS["CLASS"]:
+                content += `${SPACE}wcb-js-class`;
+                break;
             case DESCRIPTORS["NUMBER"]:
                 content += `${SPACE}wcb-js-number`;
                 break;
@@ -250,8 +273,14 @@ const createSpanOpenTag = function createSpanOpenTag(descriptors) {
 }
 
 const formatContentToCodeblock = function formatContentToCodeblock(content, tokenSets, lang) {
-    TOKEN_FACTORY.setTypes(tokenSets.types);
-    TOKEN_FACTORY.setKeywords(tokenSets.keywords);
+    TOKEN_FACTORY.setTypes(tokenSets.types, lang);
+    TOKEN_FACTORY.setKeywords(tokenSets.keywords, lang);
+    TOKEN_FACTORY.setBasicOperators(tokenSets.basicOperators, lang);
+    TOKEN_FACTORY.setComparisonOperators(tokenSets.comparisonOperators, lang);
+    TOKEN_FACTORY.setBrackets(tokenSets.brackets, lang);
+    TOKEN_FACTORY.setClasses(tokenSets.classes, lang);
+    TOKEN_FACTORY.setStrings(tokenSets.strings, lang);
+    TOKEN_FACTORY.setComments(tokenSets.comments, lang);
     TOKEN_FACTORY.setTokens();
 
     const tokens = (() => {

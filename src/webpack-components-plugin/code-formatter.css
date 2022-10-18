@@ -27,3 +27,11 @@
 .wcb-js-comment {
     color: #41a70a;
 }
+
+.wcb-js-class {
+    color: #4ec9b0;
+}
+
+.wcb-js-string {
+    color: #Ce9178;
+}
