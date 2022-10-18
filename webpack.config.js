@@ -17,10 +17,7 @@ module.exports = {
         maxEntrypointSize: 512000,
         maxAssetSize: 512000
     },
-    devServer: {
-        contentBase: ["./src"],
-        watchContentBase: true
-    },
+
     plugins: [
         new WebpackComponents({
             // todo: Create exclude watch list here maybe.
@@ -30,7 +27,31 @@ module.exports = {
             sources: [
                 { in: "./src/test-env/index.html", out: "./index.html" }
             ],
-            codeblockCss: { out: "./css/code-formatter.css" }
+            codeblockSettings: {
+                css: { out: "./css/code-formatter.css" },
+                formatting: {
+                    javascript: {
+                        types: new Set([
+                            `let`, `const`, `var`, `function`,
+                            `static`, `null`,
+                        ]),
+                        keywords: new Set([
+                            `for`, `while`, `return`,
+                            `if`, `else`, `of`, `in`, `new`,
+                        ]),
+                    },
+                    cpp: {
+                        types: new Set([
+                            `const`, `float`, `static`, `nullptr`,
+                        ]),
+                    },
+                    python: {
+                        // comments: {
+                        //     singleLine: "#"
+                        // }
+                    }
+                }
+            }
         })
     ]
 };

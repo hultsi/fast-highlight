@@ -1,6 +1,16 @@
+/**
+ * @param {Array<Number>} xArr 
+ * @param {Array<Number>} yArr 
+ * @returns {Number}
+ */
 const covar = function covar(xArr, yArr) {
+	// Does this colorize properly?
 	if (xArr.length !== yArr.length)
 		return null;
+	const multiLineString = `
+		Hello
+		World
+	`;
 	const mX = mean(xArr);
 	const mY = mean(yArr);
 	let ss = 0;

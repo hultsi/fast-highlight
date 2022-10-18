@@ -1,6 +1,7 @@
 const fs = require("fs");
 const nodePath = require("path");
-const { formatContentToCodeblock, LANGUAGES } = require("./code-formatter.js");
+const { formatContentToCodeblock } = require("./code-formatter.js");
+const { LANGUAGES } = require("./TokenFactory.js");
 
 const genericError = function genericError() {
     const e = new Error();
@@ -97,7 +98,8 @@ class WebpackComponentsPlugin {
             this.files[i] = { in: relativeToAbsolutePath(args.sources[i].in), out: args.sources[i].out };
         }
 
-        this.codeblockCssPath = args.codeblockCss.out;
+        this.codeblockCssPath = args.codeblockSettings.css.out;
+        this.codeblockFormatting = args.codeblockSettings.formatting;
     }
 
     isIncludedInBuild = function isIncludedInBuild(path) {
@@ -223,7 +225,7 @@ class WebpackComponentsPlugin {
     }
 
     replaceCodeComponents = function replaceCodeComponents(fileContent) {
-        const fileExt = "js";
+        const fileExt = "(js|cpp|py)";
         const componentTag = new RegExp(`(<component-)(.*)([.]${fileExt}/>)`);
         const componentTagEnd = new RegExp(`/>`);
 
@@ -252,7 +254,21 @@ class WebpackComponentsPlugin {
             const componentContent = this.getComponentContent(fileName);
 
             // Finally add the content and "move copiedContent pointer"
-            parsedContent += formatContentToCodeblock(componentContent, LANGUAGES["JAVASCRIPT"]);
+            const [tokenSets, lang] = (() => {
+                const splittedFileName = fileName.split(".");
+                const len = splittedFileName.length;
+                switch (splittedFileName[len - 1]) {
+                    case "js":
+                        return [this.codeblockFormatting.javascript, "JAVASCRIPT"];
+                    case "cpp":
+                        return [this.codeblockFormatting.cpp, "C++"];
+                    case "py":
+                        return [this.codeblockFormatting.python, "PYTHON"];
+                    default:
+                        return null;
+                }
+            })();
+            parsedContent += formatContentToCodeblock(componentContent, tokenSets, LANGUAGES[lang]);
             copiedContent = copiedContent.substring(theActualParsedTag.length);
         }
 
