@@ -1,6 +1,5 @@
 const Enum = require("./Enum.js");
 const {
-    LANGUAGES,
     SPACE,
     LINE_BREAK,
     TokenFactory,
@@ -273,15 +272,7 @@ const createSpanOpenTag = function createSpanOpenTag(descriptors) {
 }
 
 const formatContentToCodeblock = function formatContentToCodeblock(content, tokenSets, lang) {
-    TOKEN_FACTORY.setTypes(tokenSets.types, lang);
-    TOKEN_FACTORY.setKeywords(tokenSets.keywords, lang);
-    TOKEN_FACTORY.setBasicOperators(tokenSets.basicOperators, lang);
-    TOKEN_FACTORY.setComparisonOperators(tokenSets.comparisonOperators, lang);
-    TOKEN_FACTORY.setBrackets(tokenSets.brackets, lang);
-    TOKEN_FACTORY.setClasses(tokenSets.classes, lang);
-    TOKEN_FACTORY.setStrings(tokenSets.strings, lang);
-    TOKEN_FACTORY.setComments(tokenSets.comments, lang);
-    TOKEN_FACTORY.setTokens();
+    TOKEN_FACTORY.resetTokens(tokenSets, lang);
 
     const tokens = (() => {
         const tokenValues = tokenize(content);
@@ -292,6 +283,5 @@ const formatContentToCodeblock = function formatContentToCodeblock(content, toke
 }
 
 module.exports = {
-    LANGUAGES,
     formatContentToCodeblock,
 }
