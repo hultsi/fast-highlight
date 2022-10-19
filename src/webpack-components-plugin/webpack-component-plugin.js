@@ -99,7 +99,14 @@ class WebpackComponentsPlugin {
         }
 
         this.codeblockCssPath = args.codeblockSettings.css.out;
-        this.codeblockFormatting = args.codeblockSettings.formatting;
+        this.codeblockFormatting = {
+            js: {},
+            cpp: {},
+            py: {},
+        };
+        for (const [key, val] of Object.entries(args.codeblockSettings.formatting)) {
+            this.codeblockFormatting[key] = val;
+        }
     }
 
     isIncludedInBuild = function isIncludedInBuild(path) {
@@ -257,16 +264,19 @@ class WebpackComponentsPlugin {
             const [tokenSets, lang] = (() => {
                 const splittedFileName = fileName.split(".");
                 const len = splittedFileName.length;
-                switch (splittedFileName[len - 1]) {
-                    case "js":
-                        return [this.codeblockFormatting.javascript, "JAVASCRIPT"];
-                    case "cpp":
-                        return [this.codeblockFormatting.cpp, "C++"];
-                    case "py":
-                        return [this.codeblockFormatting.python, "PYTHON"];
-                    default:
-                        return null;
-                }
+                const lang = splittedFileName[len - 1];
+                return [this.codeblockFormatting[lang], lang];
+                // switch (lang) {
+                //     case "js":
+                //         return [this.codeblockFormatting[lang], lang];
+                //     case "cpp":
+                //         return [this.codeblockFormatting[lang], lang];
+                //     case "py":
+                //         return [this.codeblockFormatting[lang], lang];
+                //     default:
+                //         // Just use js default tokens 
+                //         return [this.codeblockFormatting[lang], "js"];
+                // }
             })();
             parsedContent += formatContentToCodeblock(componentContent, tokenSets, LANGUAGES[lang]);
             copiedContent = copiedContent.substring(theActualParsedTag.length);

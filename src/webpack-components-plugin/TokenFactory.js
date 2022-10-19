@@ -1,9 +1,12 @@
 const Enum = require("./Enum.js");
+const jsTokens = require("./default_tokensets/javascript.js");
+const cppTokens = require("./default_tokensets/cpp.js");
+const pythonTokens = require("./default_tokensets/python.js");
 
 const LANGUAGES = new Enum().erate([
-    "JAVASCRIPT",
-    "C++",
-    "PYTHON",
+    "js",
+    "cpp",
+    "py",
 ]);
 
 const SPACE = " ";
@@ -12,110 +15,9 @@ const LINE_BREAK = "\n";
 
 const DEFAULT_TOKENSETS = (() => {
     const defaults = new Array(Object.keys(LANGUAGES).length);
-    defaults[LANGUAGES["JAVASCRIPT"]] = {
-        types: new Set([
-            `let`, `const`, `var`, `function`,
-            `static`, `null`,
-        ]),
-        keywords: new Set([
-            `for`, `while`, `return`,
-            `if`, `else`, `of`, `in`, `new`,
-        ]),
-        basicOperators: new Set([
-            `+`, `-`, `*`, `/`, `=`,
-            `++`, `--`, `-=`, `+=`, `**`,
-            `&`, `|`, `&&`, `||`,
-            `:`, `;`, `.`, `,`,
-        ]),
-        comparisonOperators: new Set([
-            `==`, `!=`, `>=`, `<`, `>`,
-            `<=`, `===`, `!==`,
-        ]),
-        brackets: new Set([
-            `(`, `)`, `{`,
-            `}`, `[`, `]`,
-        ]),
-        classes: new Set([
-            `Date`, `Math`,
-        ]),
-        strings: {
-            singleLine: [`"`, `'`],
-            multiLine: [`\``],
-        },
-        comments: {
-            singleLine: `//`,
-            multiLineStart: `/*`,
-            multiLineEnd: `*/`,
-        }
-    };
-    defaults[LANGUAGES["C++"]] = {
-        types: new Set([
-            `let`, `const`, `var`, `function`,
-            `static`, `null`,
-        ]),
-        keywords: new Set([
-            `for`, `while`, `return`, `do`,
-            `if`, `else`, `new`, `delete`,
-            `#ifdef`, `#endif`, `#include`, `#pragma`,
-        ]),
-        basicOperators: new Set([
-            `+`, `-`, `*`, `/`, `=`,
-            `++`, `--`, `-=`, `+=`,
-            `&`, `|`, `&&`, `||`,
-            `:`, `;`, `.`, `,`, `::`
-        ]),
-        comparisonOperators: new Set([
-            `==`, `!=`, `>=`, `<`, `>`,
-            `<=`,
-        ]),
-        brackets: new Set([
-            `(`, `)`, `{`,
-            `}`, `[`, `]`,
-        ]),
-        classes: new Set([
-            `std`, `string`, `iostream`,
-            `vector`, `array`
-        ]),
-        strings: {
-            singleLine: [`"`, `'`],
-        },
-        comments: {
-            singleLine: `//`,
-            multiLineStart: `/*`,
-            multiLineEnd: `*/`,
-        }
-    };
-    defaults[LANGUAGES["PYTHON"]] = {
-        types: new Set([
-            `def`, `True`, `False`,
-        ]),
-        keywords: new Set([
-            `for`, `while`, `return`, `do`,
-            `if`, `else`, `elif`,
-            `and`, `not`, `or`, `in`,
-            `import`
-        ]),
-        basicOperators: new Set([
-            `+`, `-`, `*`, `/`, `=`,
-            `-=`, `+=`, `**`,
-            `:`, `;`, `.`, `,`, `::`
-        ]),
-        comparisonOperators: new Set([
-            `==`, `!=`, `>=`, `<`, `>`,
-            `<=`,
-        ]),
-        brackets: new Set([
-            `(`, `)`, `{`,
-            `}`, `[`, `]`,
-        ]),
-        classes: new Set([]),
-        strings: {
-            singleLine: [`"`, `'`],
-        },
-        comments: {
-            singleLine: `#`,
-        }
-    };
+    defaults[LANGUAGES["js"]] = jsTokens;
+    defaults[LANGUAGES["cpp"]] = cppTokens;
+    defaults[LANGUAGES["py"]] = pythonTokens;
     return defaults;
 })();
 
@@ -151,85 +53,9 @@ class TokenFactory {
         ]);
     }
 
-    // todo: I'm not happy with this set of sets... fix this
-    setTypes(types, lang) {
-        this.types.clear();
-        if (types) {
-            for (const token of types) {
-                this.types.add(token);
-            }
-        } else {
-            for (const token of DEFAULT_TOKENSETS[lang].types) {
-                this.types.add(token);
-            }
-        }
-    }
-
-    setKeywords(keywords, lang) {
-        this.keywords.clear();
-        if (keywords) {
-            for (const token of keywords) {
-                this.keywords.add(token);
-            }
-        } else {
-            for (const token of DEFAULT_TOKENSETS[lang].keywords) {
-                this.keywords.add(token);
-            }
-        }
-    }
-
-    setBasicOperators(basicOperators, lang) {
-        this.basicOperators.clear();
-        if (basicOperators) {
-            for (const token of basicOperators) {
-                this.basicOperators.add(token);
-            }
-        } else {
-            for (const token of DEFAULT_TOKENSETS[lang].basicOperators) {
-                this.basicOperators.add(token);
-            }
-        }
-    }
-
-    setComparisonOperators(comparisonOperators, lang) {
-        this.comparisonOperators.clear();
-        if (comparisonOperators) {
-            for (const token of comparisonOperators) {
-                this.comparisonOperators.add(token);
-            }
-        } else {
-            for (const token of DEFAULT_TOKENSETS[lang].comparisonOperators) {
-                this.comparisonOperators.add(token);
-            }
-        }
-    }
-
-    setBrackets(brackets, lang) {
-        this.brackets.clear();
-        if (brackets) {
-            for (const token of brackets) {
-                this.brackets.add(token);
-            }
-        } else {
-            for (const token of DEFAULT_TOKENSETS[lang].brackets) {
-                this.brackets.add(token);
-            }
-        }
-    }
-
-    setClasses(classes, lang) {
-        this.classes.clear();
-        if (classes) {
-            for (const token of classes) {
-                this.classes.add(token);
-            }
-        } else {
-            for (const token of DEFAULT_TOKENSETS[lang].classes) {
-                this.classes.add(token);
-            }
-        }
-    }
-
+    /**
+     * Call reset tokens and not this
+     */
     setStrings(strings, lang) {
         this.strings.clear();
         this.stringHolder.singleLine = [];
@@ -254,6 +80,9 @@ class TokenFactory {
         }
     }
 
+    /**
+     * Call reset tokens and not this
+     */
     setComments(comments, lang) {
         this.comments.clear();
         if (comments) {
@@ -270,7 +99,30 @@ class TokenFactory {
         this.comments.add(this.commentHolder.multiLineEnd);
     }
 
-    setTokens() {
+    resetTokens(tokenSets, lang) {
+        if (lang === undefined) {
+            lang = LANGUAGES["JAVASCRIPT"];
+        }
+        for (const set of Object.keys(DEFAULT_TOKENSETS[lang])) {
+            if (set == "strings") {
+                this.setStrings(tokenSets[set], lang);
+                continue;
+            } else if (set == "comments") {
+                this.setComments(tokenSets[set], lang);
+                continue;
+            }
+            this[set].clear();
+            if (tokenSets[set]) {
+                for (const token of tokenSets[set]) {
+                    this[set].add(token);
+                }
+            } else {
+                for (const token of DEFAULT_TOKENSETS[lang][set]) {
+                    this[set].add(token);
+                }
+            }
+        }
+
         this.tokens = new Set([
             ...this.types,
             ...this.keywords,

@@ -45,11 +45,6 @@ module.exports = {
                             `const`, `float`, `static`, `nullptr`,
                         ]),
                     },
-                    python: {
-                        // comments: {
-                        //     singleLine: "#"
-                        // }
-                    }
                 }
             }
         })
