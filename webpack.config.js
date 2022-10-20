@@ -30,7 +30,7 @@ module.exports = {
             codeblockSettings: {
                 css: { out: "./css/code-formatter.css" },
                 formatting: {
-                    javascript: {
+                    js: {
                         types: new Set([
                             `let`, `const`, `var`, `function`,
                             `static`, `null`,

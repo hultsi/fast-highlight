@@ -3,6 +3,7 @@ const {
     SPACE,
     LINE_BREAK,
     TokenFactory,
+    LANGUAGES,
 } = require("./TokenFactory.js");
 
 const TOKEN_FACTORY = new TokenFactory();
@@ -38,6 +39,7 @@ const DESCRIPTORS = new Enum().erate([
  * @returns bool
  */
 const isValidChar = function isValidChar(c) {
+    // Todo: this is unused currently. Remove?
     return ((c[0].charCodeAt(0) >= 48 && c[0].charCodeAt(0) <= 57) ||
         (c[0].charCodeAt(0) >= 65 && c[0].charCodeAt(0) <= 90) ||
         (c[0].charCodeAt(0) >= 97 && c[0].charCodeAt(0) <= 122) ||
@@ -87,25 +89,21 @@ const tokenize = function tokenize(cmd) {
                             break;
                         }
                     }
-                } else if (cmd.substring(i, i + len) === TOKEN_FACTORY.commentHolder.singleLine) {
+                } else if (cmd.substring(i, i + len) === TOKEN_FACTORY.commentHolder.singleLine ||
+                    cmd.substring(i, i + len) === TOKEN_FACTORY.commentHolder.multiLineStart) {
+                    const isSingleLine = TOKEN_FACTORY.commentHolder.singleLine === token;
                     while (true) {
                         tokenArr[pos].value += cmd[i];
                         ++i;
-                        if (cmd[i] === LINE_BREAK) {
+                        if (cmd[i] === LINE_BREAK && isSingleLine) {
+                            --i;
                             break;
-                        }
-                    }
-                    --i;
-                } else if (cmd.substring(i, i + len) === TOKEN_FACTORY.commentHolder.multiLineStart) {
-                    while (true) {
-                        tokenArr[pos].value += cmd[i];
-                        ++i;
-                        if (cmd.substring(i, i + len) === TOKEN_FACTORY.commentHolder.multiLineEnd) {
+                        } else if (cmd.substring(i, i + len) === TOKEN_FACTORY.commentHolder.multiLineEnd && !isSingleLine) {
                             tokenArr[pos].value += cmd.substring(i, i + len);
+                            ++i;
                             break;
                         }
                     }
-                    ++i;
                 } else {
                     if (!prevWasToken && (TOKEN_FACTORY.types.has(token) || TOKEN_FACTORY.keywords.has(token))) {
                         // types and keywords require a space after a _non_ token
@@ -150,7 +148,7 @@ const tokenize = function tokenize(cmd) {
     return tokenArr.filter(el => el.value !== '' && el.value !== SPACE);
 }
 
-const addDescriptors = function addDescriptors(tokenValues) {
+const addDescriptors = function addDescriptors(tokenValues, lang) {
     // Todo: this should be cleaned up somehow
     const len = tokenValues.length;
     let prevWasVariable = false;
@@ -167,8 +165,24 @@ const addDescriptors = function addDescriptors(tokenValues) {
             tokenValues[i].descriptor.add(DESCRIPTORS["KEYWORD"]);
         } else if (TOKEN_FACTORY.basicOperators.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
+            if (lang === LANGUAGES["cpp"] && token === `::`) {
+                // C++ specific condition
+                tokenValues[i - 1].descriptor.add(DESCRIPTORS["CLASS"]);
+            }
         } else if (TOKEN_FACTORY.comparisonOperators.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
+            if (lang === LANGUAGES["cpp"] && token === `>` && i > 2) {
+                // C++ specific condition for #includes
+                if ((tokenValues[i - 1].descriptor.has(DESCRIPTORS["VARIABLE"]) ||
+                    tokenValues[i - 1].descriptor.has(DESCRIPTORS["CLASS"])) &&
+                    tokenValues[i - 2].value === `<` &&
+                    tokenValues[i - 3].value === `#include`) {
+                    // And finally...
+                    tokenValues[i].descriptor.add(DESCRIPTORS["STRING"]);
+                    tokenValues[i - 1].descriptor.add(DESCRIPTORS["STRING"]);
+                    tokenValues[i - 2].descriptor.add(DESCRIPTORS["STRING"]);
+                }
+            }
         } else if (TOKEN_FACTORY.brackets.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["BRACKET"]);
             if (prevWasVariable && token === "(") {
@@ -276,7 +290,7 @@ const formatContentToCodeblock = function formatContentToCodeblock(content, toke
 
     const tokens = (() => {
         const tokenValues = tokenize(content);
-        return addDescriptors(tokenValues);
+        return addDescriptors(tokenValues, lang);
     })();
 
     return `${formatContent(tokens)}`;

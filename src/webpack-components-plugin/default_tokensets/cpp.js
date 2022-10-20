@@ -25,7 +25,7 @@ module.exports = {
         `}`, `[`, `]`,
     ]),
     classes: new Set([
-        `std`,
+        `vector`, `array`, `string`,
     ]),
     strings: {
         singleLine: [`"`, `'`],
