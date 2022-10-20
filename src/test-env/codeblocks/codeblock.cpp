@@ -1,3 +1,5 @@
+#include <vector>
+
 static float mse(const std::vector<float> &predicted, const std::vector<float> &observed = { },
                 [[maybe_unused]] const bool realData = true) {
     #ifdef CUSTOM_DEBUG
