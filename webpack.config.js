@@ -46,6 +46,17 @@ module.exports = {
                             `const`, `float`, `static`, `nullptr`,
                         ]),
                     },
+                    asd: {
+                        types: new Set([
+                            `my_type`,
+                        ]),
+                        keywords: new Set([
+                            `loop`
+                        ]),
+                        comments: {
+                            singleLine: `$`,
+                        }
+                    }
                 }
             }
         })
