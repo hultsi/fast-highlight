@@ -25,7 +25,8 @@ module.exports = {
                 { in: "./src/test-env" }
             ],
             sources: [
-                { in: "./src/test-env/index.html", out: "./index.html" }
+                { in: "./src/test-env/index.html", out: "./index.html" },
+                { in: "./src/test-env/css", out: "./css/" }
             ],
             codeblockSettings: {
                 css: { out: "./css/code-formatter.css" },
