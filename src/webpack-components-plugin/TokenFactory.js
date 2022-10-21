@@ -104,6 +104,7 @@ class TokenFactory {
             lang = LANGUAGES["JAVASCRIPT"];
         }
         for (const set of Object.keys(DEFAULT_TOKENSETS[lang])) {
+            this[set].clear();
             if (set == "strings") {
                 this.setStrings(tokenSets[set], lang);
                 continue;
@@ -111,7 +112,6 @@ class TokenFactory {
                 this.setComments(tokenSets[set], lang);
                 continue;
             }
-            this[set].clear();
             if (tokenSets[set]) {
                 for (const token of tokenSets[set]) {
                     this[set].add(token);

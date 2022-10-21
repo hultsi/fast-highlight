@@ -45,6 +45,7 @@ const findFilesWithExtRecursive = function findFilesWithExtRecursive(dirPath, ex
         genericError();
     }
     const files = fs.readdirSync(dirPath);
+    // Todo: Const correct this
     let arrayOfFiles = [];
     for (let i = 0; i < files.length; ++i) {
         const file = files[i];
@@ -74,7 +75,6 @@ class WebpackComponentsPlugin {
     constructor(args) {
         this.root = "";
         this.hasCodeblocks = false;
-        // this.filesToWatch = []; // Updated during compilation
 
         const componentPaths = (() => {
             const paths = new Array(args.components.length);
@@ -110,12 +110,13 @@ class WebpackComponentsPlugin {
     }
 
     isIncludedInBuild = function isIncludedInBuild(path) {
-        for (let i = 0; i < this.files.length; ++i) {
-            if (this.files[i].in === path) {
-                return true;
-            }
-        }
-        return false;
+        // TODO: this is probably not needed
+        // for (let i = 0; i < this.files.length; ++i) {
+        //     if (this.files[i].in === path) {
+        //         return true;
+        //     }
+        // }
+        return true;
     }
 
     getOutputPath = function getOutputPath(path) {
@@ -167,6 +168,32 @@ class WebpackComponentsPlugin {
         return out;
     }
 
+    getMetaTags = function getMetaTags(contentInsideHeadTags) {
+        let out = [];
+        let copiedContent = contentInsideHeadTags; // Todo: probably don't need a copy here since it's a string
+        while (true) {
+            const metaTagBeginPointer = copiedContent.search(/<meta.*?>/);
+            if (metaTagBeginPointer === -1) {
+                break;
+            }
+            copiedContent = copiedContent.substring(metaTagBeginPointer);
+
+            const metaTagEndPointer = copiedContent.search(">");
+            const fullmetaTagString = (() => {
+                const metaTagString = copiedContent.substring(0, metaTagEndPointer + 1);
+                // Todo: this might be useless if the head is cleaned up at some point anyway
+                if (metaTagString[metaTagString.length - 1] !== `\n`) {
+                    return metaTagString + `\n`;
+                }
+                return metaTagString;
+            })();
+
+            out = [...out, fullmetaTagString];
+            copiedContent = copiedContent.substring(metaTagEndPointer);
+        }
+        return out;
+    }
+
     replaceHtmlComponents = function replaceHtmlComponents(fileContent) {
         const fileExt = "html";
         const componentTag = new RegExp(`(<component-)(.*)([.]${fileExt}/>)`);
@@ -213,11 +240,11 @@ class WebpackComponentsPlugin {
             copiedContent = copiedContent.substring(theActualParsedTag.length);
 
             // Then handle <head> tags
-            // Todo: no need to do this multiple times for the same component
             const contentInsideHeadTags = (() => {
                 const upToFirstHeadTagSliced = componentContent.split(/<head>/)[1]; // No spaces in tags currently allowed!
                 return upToFirstHeadTagSliced.split(/<\/head>/)[0].trim();
             })();
+            // <link> tagas
             const linkTagsIncludedAlready = this.getLinkTags(copiedContentHead);
             const linkTagsToInclude = this.getLinkTags(contentInsideHeadTags);
             for (let i = 0; i < linkTagsToInclude.length; ++i) {
@@ -225,8 +252,14 @@ class WebpackComponentsPlugin {
                     copiedContentHead += linkTagsToInclude[i].fullLinkTagString;
                 }
             }
-
-            // Add meta tags as well? (Warn about duplicate meta tags?)
+            // <meta> tags
+            const metaTagsIncludedAlready = this.getMetaTags(copiedContentHead);
+            const metaTagsToInclude = this.getMetaTags(contentInsideHeadTags);
+            for (let i = 0; i < metaTagsToInclude.length; ++i) {
+                if (metaTagsIncludedAlready.findIndex(el => el === metaTagsToInclude[i]) === -1) {
+                    copiedContentHead += metaTagsToInclude[i];
+                }
+            }
         }
         return parsedContent.replace(`${HEAD_TEMPORARY_HASH}`, copiedContentHead);
     }
@@ -260,25 +293,14 @@ class WebpackComponentsPlugin {
 
             const componentContent = this.getComponentContent(fileName);
 
-            // Finally add the content and "move copiedContent pointer"
-            const [tokenSets, lang] = (() => {
+            const lang = (() => {
                 const splittedFileName = fileName.split(".");
                 const len = splittedFileName.length;
                 const lang = splittedFileName[len - 1];
-                return [this.codeblockFormatting[lang], lang];
-                // switch (lang) {
-                //     case "js":
-                //         return [this.codeblockFormatting[lang], lang];
-                //     case "cpp":
-                //         return [this.codeblockFormatting[lang], lang];
-                //     case "py":
-                //         return [this.codeblockFormatting[lang], lang];
-                //     default:
-                //         // Just use js default tokens 
-                //         return [this.codeblockFormatting[lang], "js"];
-                // }
+                return lang;
             })();
-            parsedContent += formatContentToCodeblock(componentContent, tokenSets, LANGUAGES[lang]);
+            // Finally add the content and "move copiedContent pointer"
+            parsedContent += formatContentToCodeblock(componentContent, this.codeblockFormatting[lang], LANGUAGES[lang]);
             copiedContent = copiedContent.substring(theActualParsedTag.length);
         }
 
@@ -307,33 +329,66 @@ class WebpackComponentsPlugin {
 
         compiler.hooks.thisCompilation.tap(pluginName, (compilation) => {
             this.root = compilation.options.context;
-            this.hasCodeblocks = false;
-            const filesWithExt = findFilesWithExtRecursive(nodePath.join(this.root, "/src"), "html"); // TODO: these should be user defined?
-            const filesAbs = relativeToAbsolutePath(filesWithExt);
+            for (let fileInd = 0; fileInd < this.files.length; ++fileInd) {
+                this.hasCodeblocks = false;
 
-            // Parse html files
-            for (let i = 0; i < filesAbs.length; ++i) {
-                if (!this.isIncludedInBuild(filesAbs[i])) {
-                    continue;
-                }
-                const file = fs.readFileSync(filesAbs[i], { encoding: "utf8" });
-                const parsedContent = (() => {
-                    const htmlComponentsReplaced = this.replaceHtmlComponents(file);
-                    return this.replaceCodeComponents(htmlComponentsReplaced);
+                const [filesWithExt, isDir] = (() => {
+                    if (!fs.statSync(this.files[fileInd].in).isDirectory()) {
+                        return [this.files[fileInd].in, false];
+                    } else {
+                        return [findFilesWithExtRecursive(this.files[fileInd].in), true];
+                    }
                 })();
 
-                compilation.emitAsset(
-                    this.getOutputPath(filesAbs[i]),
-                    new RawSource(parsedContent)
-                );
-            }
+                const filesAbs = (() => {
+                    const paths = relativeToAbsolutePath(filesWithExt);
+                    if (Array.isArray(paths)) {
+                        return paths;
+                    }
+                    return [paths];
+                })();
 
-            if (this.hasCodeblocks) {
-                const cbCss = fs.readFileSync(nodePath.join(__dirname, "/", "code-formatter.css"), { encoding: "utf8" });
-                compilation.emitAsset(
-                    this.codeblockCssPath,
-                    new RawSource(cbCss)
-                )
+                // Parse html files                
+                for (let i = 0; i < filesAbs.length; ++i) {
+                    if (!this.isIncludedInBuild(filesAbs[i])) {
+                        continue;
+                    }
+                    const file = fs.readFileSync(filesAbs[i], { encoding: "utf8" });
+                    const parsedContent = (() => {
+                        const splitted = filesAbs[i].split(".");
+                        if (splitted[splitted.length - 1] === "html") {
+                            const htmlComponentsReplaced = this.replaceHtmlComponents(file);
+                            return this.replaceCodeComponents(htmlComponentsReplaced);
+                        } else {
+                            return file;
+                        }
+                    })();
+
+                    // Finally emit assets
+                    if (!isDir) {
+                        compilation.emitAsset(
+                            this.files[fileInd].out,
+                            new RawSource(parsedContent)
+                        );
+                    } else {
+                        const fileName = (() => {
+                            const splitted = filesAbs[i].split("/");
+                            return splitted[splitted.length - 1];
+                        })();
+                        compilation.emitAsset(
+                            nodePath.join(this.files[fileInd].out, "/", fileName),
+                            new RawSource(parsedContent)
+                        );
+                    }
+                }
+
+                if (this.hasCodeblocks) {
+                    const cbCss = fs.readFileSync(nodePath.join(__dirname, "/", "code-formatter.css"), { encoding: "utf8" });
+                    compilation.emitAsset(
+                        this.codeblockCssPath,
+                        new RawSource(cbCss)
+                    )
+                }
             }
         });
 
