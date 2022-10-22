@@ -20,7 +20,7 @@ module.exports = {
 
     plugins: [
         new WebpackComponents({
-            // todo: Create exclude watch list here maybe.
+            optimizeHead: true,
             components: [
                 { in: "./src/test-env" }
             ],
