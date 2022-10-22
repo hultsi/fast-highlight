@@ -23,8 +23,15 @@ const DEFAULT_TOKENSETS = (() => {
 
 class TokenFactory {
     constructor() {
-        this.stringHolder = {};
-        this.commentHolder = {};
+        this.stringHolder = {
+            singleLine: [``],
+            multiLine: [``],
+        };
+        this.commentHolder = {
+            singleLine: ``,
+            multiLineStart: ``,
+            multiLineEnd: ``,
+        };
 
         this.scopeStart = "{";
         this.scopeEnd = "}";
@@ -56,18 +63,20 @@ class TokenFactory {
     /**
      * Call reset tokens and not this
      */
-    setStrings(strings, lang) {
+    setStrings = function setStrings(strings, lang) {
         this.strings.clear();
         this.stringHolder.singleLine = [];
         this.stringHolder.multiLine = [];
         if (strings) {
-            for (const key of Object.keys(strings)) {
+            for (const key of Object.keys(this.stringHolder)) {
+                if (strings[key] === undefined) continue;
                 for (let i = 0; i < strings[key].length; ++i) {
                     this.stringHolder[key] = [...this.stringHolder[key], strings[key][i] || ``];
                 }
             }
         } else {
-            for (const key of Object.keys(DEFAULT_TOKENSETS[lang].strings)) {
+            for (const key of Object.keys(this.stringHolder)) {
+                if (DEFAULT_TOKENSETS[lang].strings[key] === undefined) continue;
                 for (let i = 0; i < DEFAULT_TOKENSETS[lang].strings[key].length; ++i) {
                     this.stringHolder[key] = [...this.stringHolder[key], DEFAULT_TOKENSETS[lang].strings[key][i] || ``];
                 }
@@ -83,14 +92,14 @@ class TokenFactory {
     /**
      * Call reset tokens and not this
      */
-    setComments(comments, lang) {
+    setComments = function setComments(comments, lang) {
         this.comments.clear();
         if (comments) {
-            for (const key of Object.keys(this.comments)) {
+            for (const key of Object.keys(this.commentHolder)) {
                 this.commentHolder[key] = comments[key] || ``;
             }
         } else {
-            for (const key of Object.keys(DEFAULT_TOKENSETS[lang].comments)) {
+            for (const key of Object.keys(this.commentHolder)) {
                 this.commentHolder[key] = DEFAULT_TOKENSETS[lang].comments[key] || ``;
             }
         }
@@ -99,9 +108,9 @@ class TokenFactory {
         this.comments.add(this.commentHolder.multiLineEnd);
     }
 
-    resetTokens(tokenSets, lang) {
+    resetTokens = function resetTokens(tokenSets, lang) {
         if (lang === undefined) {
-            lang = LANGUAGES["JAVASCRIPT"];
+            lang = LANGUAGES["js"];
         }
         for (const set of Object.keys(DEFAULT_TOKENSETS[lang])) {
             this[set].clear();

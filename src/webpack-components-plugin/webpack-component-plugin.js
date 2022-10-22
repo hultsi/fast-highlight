@@ -45,7 +45,6 @@ const findFilesWithExtRecursive = function findFilesWithExtRecursive(dirPath, ex
         genericError();
     }
     const files = fs.readdirSync(dirPath);
-    // Todo: Const correct this
     let arrayOfFiles = [];
     for (let i = 0; i < files.length; ++i) {
         const file = files[i];
@@ -74,6 +73,7 @@ const findFilesWithExtRecursive = function findFilesWithExtRecursive(dirPath, ex
 class WebpackComponentsPlugin {
     constructor(args) {
         this.root = "";
+        this.beingWatched = [];
         this.hasCodeblocks = false;
 
         const componentPaths = (() => {
@@ -128,7 +128,7 @@ class WebpackComponentsPlugin {
         return null;
     }
 
-    getComponentContent = function getComponentContent(fileName) {
+    getComponentPath = function getComponentPath(fileName) {
         // Find the component from "this.components" and parse body content from it
         const componentPath = this.components.find(el => {
             const splittedPath = el.split("/");
@@ -137,7 +137,7 @@ class WebpackComponentsPlugin {
         if (componentPath === undefined) {
             genericError();
         }
-        return fs.readFileSync(componentPath, { encoding: "utf-8" });
+        return componentPath;
     }
 
     getLinkTags = function getLinkTags(contentInsideHeadTags) {
@@ -210,6 +210,7 @@ class WebpackComponentsPlugin {
             return beginningWithHash + fileContent.split(/<\/head>/)[1];
         })();
         let parsedContent = "";
+        let componentPathsArr = [];
         while (true) {
             const ind = copiedContent.search(componentTag);
             if (ind < 0) {
@@ -229,7 +230,10 @@ class WebpackComponentsPlugin {
                 return theTagEnding.split(`/>`)[0];
             })();
 
-            const componentContent = this.getComponentContent(fileName);
+            const componentPath = this.getComponentPath(fileName);
+            const componentContent = fs.readFileSync(componentPath, { encoding: "utf-8" });
+            componentPathsArr = [...componentPathsArr, componentPath];
+
             const contentInsideBodyTags = (() => {
                 const upToFirstBodyTagSliced = componentContent.split(/<body>/)[1]; // No spaces in tags currently allowed!
                 return upToFirstBodyTagSliced.split(/<\/body>/)[0];
@@ -261,16 +265,17 @@ class WebpackComponentsPlugin {
                 }
             }
         }
-        return parsedContent.replace(`${HEAD_TEMPORARY_HASH}`, copiedContentHead);
+        return [parsedContent.replace(`${HEAD_TEMPORARY_HASH}`, copiedContentHead), componentPathsArr];
     }
 
     replaceCodeComponents = function replaceCodeComponents(fileContent) {
-        const fileExt = "(js|cpp|py)";
+        const fileExt = "(.{1,5})";
         const componentTag = new RegExp(`(<component-)(.*)([.]${fileExt}/>)`);
         const componentTagEnd = new RegExp(`/>`);
 
         let copiedContent = fileContent;
         let parsedContent = "";
+        let componentPathsArr = [];
         while (true) {
             const ind = copiedContent.search(componentTag);
             if (ind < 0) {
@@ -291,7 +296,9 @@ class WebpackComponentsPlugin {
                 return theTagEnding.split(`/>`)[0];
             })();
 
-            const componentContent = this.getComponentContent(fileName);
+            const componentPath = this.getComponentPath(fileName);
+            const componentContent = fs.readFileSync(componentPath, { encoding: "utf-8" });
+            componentPathsArr = [...componentPathsArr, componentPath];
 
             const lang = (() => {
                 const splittedFileName = fileName.split(".");
@@ -319,7 +326,7 @@ class WebpackComponentsPlugin {
                 ${parsedContent.substring(ind)}
             `;
         }
-        return parsedContent;
+        return [parsedContent, componentPathsArr];
     }
 
     apply(compiler) {
@@ -354,13 +361,15 @@ class WebpackComponentsPlugin {
                         continue;
                     }
                     const file = fs.readFileSync(filesAbs[i], { encoding: "utf8" });
-                    const parsedContent = (() => {
+                    const [parsedContent, componentPaths] = (() => {
                         const splitted = filesAbs[i].split(".");
                         if (splitted[splitted.length - 1] === "html") {
-                            const htmlComponentsReplaced = this.replaceHtmlComponents(file);
-                            return this.replaceCodeComponents(htmlComponentsReplaced);
+                            const [htmlComponentsReplaced, htmlComponents] = this.replaceHtmlComponents(file);
+                            const [codeComponentsReplaced, codeComponents] = this.replaceCodeComponents(htmlComponentsReplaced);
+                            return [codeComponentsReplaced, [...htmlComponents, ...codeComponents]];
                         } else {
-                            return file;
+                            // Not an .html, just return as is
+                            return [file, new Array(0)];
                         }
                     })();
 
@@ -380,6 +389,8 @@ class WebpackComponentsPlugin {
                             new RawSource(parsedContent)
                         );
                     }
+
+                    this.beingWatched = [...this.beingWatched, filesAbs[i], ...componentPaths];
                 }
 
                 if (this.hasCodeblocks) {
@@ -393,12 +404,12 @@ class WebpackComponentsPlugin {
         });
 
         compiler.hooks.afterCompile.tapAsync(pluginName, (compilation, callback) => {
-            // TODO: this is not complete
-            const filesWithExt = findFilesWithExtRecursive(nodePath.join(this.root, "/src"), "html"); // TODO: these should be user defined?
-            const filesAbs = relativeToAbsolutePath(filesWithExt);
-            for (let i = 0; i < filesAbs.length; ++i) {
+            const beingWatchedSet = new Set([...this.beingWatched]); // Makes every element unique
+
+            for (const path of beingWatchedSet) {
                 // For some reason webpack doesn't understand forward slashes...?
-                compilation.fileDependencies.add(filesAbs[i].replaceAll("/", "\\"));
+                // console.log(path);
+                compilation.fileDependencies.add(path.replaceAll("/", "\\"));
             }
             callback();
         });
