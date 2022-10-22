@@ -75,6 +75,7 @@ class WebpackComponentsPlugin {
         this.root = "";
         this.beingWatched = [];
         this.hasCodeblocks = false;
+        this.optimizeHead = args.optimizeHead | false;
 
         const componentPaths = (() => {
             const paths = new Array(args.components.length);
@@ -107,16 +108,6 @@ class WebpackComponentsPlugin {
         for (const [key, val] of Object.entries(args.codeblockSettings.formatting)) {
             this.codeblockFormatting[key] = val;
         }
-    }
-
-    isIncludedInBuild = function isIncludedInBuild(path) {
-        // TODO: this is probably not needed
-        // for (let i = 0; i < this.files.length; ++i) {
-        //     if (this.files[i].in === path) {
-        //         return true;
-        //     }
-        // }
-        return true;
     }
 
     getOutputPath = function getOutputPath(path) {
@@ -265,6 +256,7 @@ class WebpackComponentsPlugin {
                 }
             }
         }
+
         return [parsedContent.replace(`${HEAD_TEMPORARY_HASH}`, copiedContentHead), componentPathsArr];
     }
 
@@ -329,6 +321,18 @@ class WebpackComponentsPlugin {
         return [parsedContent, componentPathsArr];
     }
 
+    optimizeHeader = function optimizeHeader(content) {
+        const ind = content.search(/<body>/);
+        const upToBodyTag = content.substring(0, ind);
+        const andTheRest = content.substring(ind);
+
+        const oneLiner = upToBodyTag.replaceAll(/[\r\n\t]*/g, "").trim();
+
+        const uselessSpacesRemoved = oneLiner.replaceAll(/([>])([\s]+?)([<])/g, "$1$3");
+
+        return `${uselessSpacesRemoved}${andTheRest}`;
+    }
+
     apply(compiler) {
         const pluginName = WebpackComponentsPlugin.name;
         const { webpack } = compiler;
@@ -357,15 +361,16 @@ class WebpackComponentsPlugin {
 
                 // Parse html files                
                 for (let i = 0; i < filesAbs.length; ++i) {
-                    if (!this.isIncludedInBuild(filesAbs[i])) {
-                        continue;
-                    }
                     const file = fs.readFileSync(filesAbs[i], { encoding: "utf8" });
                     const [parsedContent, componentPaths] = (() => {
                         const splitted = filesAbs[i].split(".");
                         if (splitted[splitted.length - 1] === "html") {
                             const [htmlComponentsReplaced, htmlComponents] = this.replaceHtmlComponents(file);
                             const [codeComponentsReplaced, codeComponents] = this.replaceCodeComponents(htmlComponentsReplaced);
+
+                            if (this.optimizeHead) {
+                                return [this.optimizeHeader(codeComponentsReplaced), [...htmlComponents, ...codeComponents]];
+                            }
                             return [codeComponentsReplaced, [...htmlComponents, ...codeComponents]];
                         } else {
                             // Not an .html, just return as is
@@ -405,10 +410,8 @@ class WebpackComponentsPlugin {
 
         compiler.hooks.afterCompile.tapAsync(pluginName, (compilation, callback) => {
             const beingWatchedSet = new Set([...this.beingWatched]); // Makes every element unique
-
             for (const path of beingWatchedSet) {
                 // For some reason webpack doesn't understand forward slashes...?
-                // console.log(path);
                 compilation.fileDependencies.add(path.replaceAll("/", "\\"));
             }
             callback();
