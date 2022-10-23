@@ -10,8 +10,6 @@ module.exports = {
         uniqueName: "webpack-components-plugin",
     },
 
-    // TODO: Come up with something better later on
-    //       For now let's just increase the size limit warnings
     performance: {
         hints: false,
         maxEntrypointSize: 512000,
@@ -20,6 +18,7 @@ module.exports = {
 
     plugins: [
         new WebpackComponents({
+            predefinedCss: true,
             optimizeHead: true,
             components: [
                 { in: "./src/test-env" }
