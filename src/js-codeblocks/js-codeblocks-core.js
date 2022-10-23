@@ -3,75 +3,13 @@ const nodePath = require("path");
 const crypto = require("crypto");
 const { formatContentToCodeblock } = require("./code-formatter.js");
 const { LANGUAGES } = require("./TokenFactory.js");
+const {
+    genericError,
+    relativeToAbsolutePath,
+    findFilesWithExtRecursive,
+} = require("./filesystem.js");
 
-const genericError = function genericError() {
-    const e = new Error();
-    const s = e.stack.split("\n").slice(2);
-    for (let i = 0; i < s.length; ++i) {
-        s[i] = s[i].trim();
-    }
-
-    const functionName = (() => {
-        const name = `${s[0].split(" ")[1]}`;
-        if (name === "new") {
-            const className = `${s[0].split(" ")[2]}`;
-            return `${name} ${className}`;
-        }
-        return name;
-    })();
-
-    console.log(`Error stack from ${functionName}(...)`)
-    console.log(s);
-    throw `Something bad happened and brought you here. Check the functions stack above.`;
-}
-
-const relativeToAbsolutePath = function relativeToAbsolutePath(path) {
-    if (Array.isArray(path)) {
-        for (let i = 0; i < path.length; ++i) {
-            if (typeof (path[i]) !== "string") {
-                genericError();
-            }
-            path[i] = nodePath.resolve(path[i]).replace(/\\{1,2}/g, "/");
-        }
-        return path;
-    }
-    if (typeof (path) !== "string") {
-        genericError();
-    }
-    return nodePath.resolve(path).replace(/\\{1,2}/g, "/");
-}
-
-const findFilesWithExtRecursive = function findFilesWithExtRecursive(dirPath, ext = "") {
-    if (typeof (dirPath) !== "string" || typeof (ext) !== "string") {
-        genericError();
-    }
-    const files = fs.readdirSync(dirPath);
-    let arrayOfFiles = [];
-    for (let i = 0; i < files.length; ++i) {
-        const file = files[i];
-        if (fs.statSync(dirPath + "/" + file).isDirectory()) {
-            fileList = findFilesWithExtRecursive(dirPath + "/" + file, ext);
-            arrayOfFiles = [...arrayOfFiles, ...fileList];
-        } else {
-            if (ext.length > 0) {
-                const checkExtension = file.split(".");
-                if (checkExtension[checkExtension.length - 1] == ext) {
-                    arrayOfFiles.push(nodePath.join(dirPath, "/", file));
-                }
-            } else {
-                arrayOfFiles.push(nodePath.join(dirPath, "/", file));
-            }
-        }
-    }
-
-    for (let i = 0; i < arrayOfFiles.length; ++i) {
-        arrayOfFiles[i] = arrayOfFiles[i].replace(/\\{1,2}/g, "/");
-    }
-
-    return arrayOfFiles;
-}
-
-class WebpackComponentsPlugin {
+class JsCodeBlocks {
     constructor(args) {
         this.root = "";
         this.beingWatched = [];
@@ -331,91 +269,6 @@ class WebpackComponentsPlugin {
 
         return `${uselessSpacesRemoved}${andTheRest}`;
     }
-
-    apply(compiler) {
-        const pluginName = WebpackComponentsPlugin.name;
-        const { webpack } = compiler;
-        const { RawSource } = webpack.sources;
-
-        compiler.hooks.thisCompilation.tap(pluginName, (compilation) => {
-            this.root = compilation.options.context;
-            for (let fileInd = 0; fileInd < this.files.length; ++fileInd) {
-                this.hasCodeblocks = false;
-
-                const [filesWithExt, isDir] = (() => {
-                    if (!fs.statSync(this.files[fileInd].in).isDirectory()) {
-                        return [this.files[fileInd].in, false];
-                    } else {
-                        return [findFilesWithExtRecursive(this.files[fileInd].in), true];
-                    }
-                })();
-
-                const filesAbs = (() => {
-                    const paths = relativeToAbsolutePath(filesWithExt);
-                    if (Array.isArray(paths)) {
-                        return paths;
-                    }
-                    return [paths];
-                })();
-
-                // Parse html files                
-                for (let i = 0; i < filesAbs.length; ++i) {
-                    const file = fs.readFileSync(filesAbs[i], { encoding: "utf8" });
-                    const [parsedContent, componentPaths] = (() => {
-                        const splitted = filesAbs[i].split(".");
-                        if (splitted[splitted.length - 1] === "html") {
-                            const [htmlComponentsReplaced, htmlComponents] = this.replaceHtmlComponents(file);
-                            const [codeComponentsReplaced, codeComponents] = this.replaceCodeComponents(htmlComponentsReplaced);
-
-                            if (this.optimizeHead) {
-                                return [this.optimizeHeader(codeComponentsReplaced), [...htmlComponents, ...codeComponents]];
-                            }
-                            return [codeComponentsReplaced, [...htmlComponents, ...codeComponents]];
-                        } else {
-                            // Not an .html, just return as is
-                            return [file, new Array(0)];
-                        }
-                    })();
-
-                    // Finally emit assets
-                    if (!isDir) {
-                        compilation.emitAsset(
-                            this.files[fileInd].out,
-                            new RawSource(parsedContent)
-                        );
-                    } else {
-                        const fileName = (() => {
-                            const splitted = filesAbs[i].split("/");
-                            return splitted[splitted.length - 1];
-                        })();
-                        compilation.emitAsset(
-                            nodePath.join(this.files[fileInd].out, "/", fileName),
-                            new RawSource(parsedContent)
-                        );
-                    }
-
-                    this.beingWatched = [...this.beingWatched, filesAbs[i], ...componentPaths];
-                }
-
-                if (this.hasCodeblocks && this.predefinedCss) {
-                    const cbCss = fs.readFileSync(nodePath.join(__dirname, "/", "code-formatter.css"), { encoding: "utf8" });
-                    compilation.emitAsset(
-                        this.codeblockCssPath,
-                        new RawSource(cbCss)
-                    )
-                }
-            }
-        });
-
-        compiler.hooks.afterCompile.tapAsync(pluginName, (compilation, callback) => {
-            const beingWatchedSet = new Set([...this.beingWatched]); // Makes every element unique
-            for (const path of beingWatchedSet) {
-                // For some reason webpack doesn't understand forward slashes...?
-                compilation.fileDependencies.add(path.replaceAll("/", "\\"));
-            }
-            callback();
-        });
-    }
 }
 
-module.exports = WebpackComponentsPlugin;
+module.exports = JsCodeBlocks;
