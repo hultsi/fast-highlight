@@ -1,5 +1,6 @@
 const fs = require("fs");
 const nodePath = require("path");
+const crypto = require("crypto");
 const { formatContentToCodeblock } = require("./code-formatter.js");
 const { LANGUAGES } = require("./TokenFactory.js");
 
@@ -75,7 +76,8 @@ class WebpackComponentsPlugin {
         this.root = "";
         this.beingWatched = [];
         this.hasCodeblocks = false;
-        this.optimizeHead = args.optimizeHead | false;
+        this.optimizeHead = (args.optimizeHead !== undefined ? args.optimizeHead : false);
+        this.predefinedCss = (args.predefinedCss !== undefined ? args.predefinedCss : true);
 
         const componentPaths = (() => {
             const paths = new Array(args.components.length);
@@ -133,45 +135,42 @@ class WebpackComponentsPlugin {
 
     getLinkTags = function getLinkTags(contentInsideHeadTags) {
         let out = [];
-        let copiedContent = contentInsideHeadTags; // Todo: probably don't need a copy here since it's a string
         while (true) {
-            const linkTagBeginPointer = copiedContent.search(/<link.*?>/);
+            const linkTagBeginPointer = contentInsideHeadTags.search(/<link.*?>/);
             if (linkTagBeginPointer === -1) {
                 break;
             }
-            copiedContent = copiedContent.substring(linkTagBeginPointer);
+            contentInsideHeadTags = contentInsideHeadTags.substring(linkTagBeginPointer);
 
-            const linkTagEndPointer = copiedContent.search(">");
-            const fullLinkTagString = copiedContent.substring(0, linkTagEndPointer + 1);
+            const linkTagEndPointer = contentInsideHeadTags.search(">");
+            const fullLinkTagString = contentInsideHeadTags.substring(0, linkTagEndPointer + 1);
             const href = (() => {
-                // TODO: is there a bit shorter way for this?
-                const hrefStart = copiedContent.search(/href=.*\.css/);
-                const hrefStartContent = copiedContent.substring(hrefStart);
-                const hrefEnd = hrefStartContent.search(/\.css/); // Todo: What if we have href="asd.css " <-- notice space
+                const hrefStart = contentInsideHeadTags.search(/href=.*\.css/);
+                const hrefStartContent = contentInsideHeadTags.substring(hrefStart);
+                const hrefEnd = hrefStartContent.search(/\.css/);
                 const beginning = "href=\"";
                 const end = ".css";
                 return hrefStartContent.substring(beginning.length, hrefEnd + end.length)
             })();
             const resolvedHref = nodePath.resolve(href); // resolve the path for easier matching
             out = [...out, { resolvedHref, fullLinkTagString }];
-            copiedContent = copiedContent.substring(linkTagEndPointer);
+            contentInsideHeadTags = contentInsideHeadTags.substring(linkTagEndPointer);
         }
         return out;
     }
 
     getMetaTags = function getMetaTags(contentInsideHeadTags) {
         let out = [];
-        let copiedContent = contentInsideHeadTags; // Todo: probably don't need a copy here since it's a string
         while (true) {
-            const metaTagBeginPointer = copiedContent.search(/<meta.*?>/);
+            const metaTagBeginPointer = contentInsideHeadTags.search(/<meta.*?>/);
             if (metaTagBeginPointer === -1) {
                 break;
             }
-            copiedContent = copiedContent.substring(metaTagBeginPointer);
+            contentInsideHeadTags = contentInsideHeadTags.substring(metaTagBeginPointer);
 
-            const metaTagEndPointer = copiedContent.search(">");
+            const metaTagEndPointer = contentInsideHeadTags.search(">");
             const fullmetaTagString = (() => {
-                const metaTagString = copiedContent.substring(0, metaTagEndPointer + 1);
+                const metaTagString = contentInsideHeadTags.substring(0, metaTagEndPointer + 1);
                 // Todo: this might be useless if the head is cleaned up at some point anyway
                 if (metaTagString[metaTagString.length - 1] !== `\n`) {
                     return metaTagString + `\n`;
@@ -180,7 +179,7 @@ class WebpackComponentsPlugin {
             })();
 
             out = [...out, fullmetaTagString];
-            copiedContent = copiedContent.substring(metaTagEndPointer);
+            contentInsideHeadTags = contentInsideHeadTags.substring(metaTagEndPointer);
         }
         return out;
     }
@@ -189,7 +188,7 @@ class WebpackComponentsPlugin {
         const fileExt = "html";
         const componentTag = new RegExp(`(<component-)(.*)([.]${fileExt}/>)`);
         const componentTagEnd = new RegExp(`/>`);
-        const HEAD_TEMPORARY_HASH = `[TODO_THIS_COULD_BE_A_LONG_HASH_FOR_EXAMPLE]`;
+        const HEAD_TEMPORARY_HASH = `[temporary_head_placeholder_${crypto.createHash(`sha256`).update((+new Date).toString(), `utf8`).digest(`hex`)}]`;
 
         let copiedContentHead = (() => {
             const upToFirstHeadTagSliced = fileContent.split(/<head>/)[1]; // No spaces in tags currently allowed!
@@ -231,7 +230,7 @@ class WebpackComponentsPlugin {
             })();
 
             // Finally add the content and "move copiedContent pointer"
-            parsedContent += contentInsideBodyTags;
+            parsedContent += contentInsideBodyTags.trim();
             copiedContent = copiedContent.substring(theActualParsedTag.length);
 
             // Then handle <head> tags
@@ -398,7 +397,7 @@ class WebpackComponentsPlugin {
                     this.beingWatched = [...this.beingWatched, filesAbs[i], ...componentPaths];
                 }
 
-                if (this.hasCodeblocks) {
+                if (this.hasCodeblocks && this.predefinedCss) {
                     const cbCss = fs.readFileSync(nodePath.join(__dirname, "/", "code-formatter.css"), { encoding: "utf8" });
                     compilation.emitAsset(
                         this.codeblockCssPath,

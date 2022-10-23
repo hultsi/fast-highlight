@@ -1,13 +1,16 @@
 {
   "name": "webpack-components-plugin",
   "version": "1.0.0",
-  "description": "todo",
-  "main": "todo",
+  "author": "Hultsi",
+  "description": "Allows easy code snippet inserting & styling",
+  "license": "MIT",
   "scripts": {
     "watch": "webpack --watch"
   },
-  "author": "Hultsi",
-  "license": "todo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hultsi/webpack-components-plugin.git"
+  },
   "devDependencies": {
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0"
