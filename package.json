@@ -1,8 +1,8 @@
 {
-  "name": "webpack-components-plugin",
+  "name": "code-blocks",
   "version": "1.0.0",
   "author": "Hultsi",
-  "description": "Allows easy code snippet inserting & styling",
+  "description": "Allows easy code snippet inserting & styling to .html files",
   "license": "MIT",
   "scripts": {
     "watch": "webpack --watch"
