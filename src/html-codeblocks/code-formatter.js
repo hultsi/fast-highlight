@@ -2,11 +2,11 @@ const Enum = require("./Enum.js");
 const {
     SPACE,
     LINE_BREAK,
-    TokenFactory,
+    Tokens,
     LANGUAGES,
-} = require("./TokenFactory.js");
+} = require("./Tokens.js");
 
-const TOKEN_FACTORY = new TokenFactory();
+const TOKENS = new Tokens();
 
 const DESCRIPTORS = new Enum().erate([
     "__UNDEF__",
@@ -33,20 +33,6 @@ const DESCRIPTORS = new Enum().erate([
 ]);
 
 /**
- * Checks if give character at position 0 of the string is within
- * a...b or A...B or 0...9 and returns true if so, otherwise false.
- * @param {string} c 
- * @returns bool
- */
-const isValidChar = function isValidChar(c) {
-    // Todo: this is unused currently. Remove?
-    return ((c[0].charCodeAt(0) >= 48 && c[0].charCodeAt(0) <= 57) ||
-        (c[0].charCodeAt(0) >= 65 && c[0].charCodeAt(0) <= 90) ||
-        (c[0].charCodeAt(0) >= 97 && c[0].charCodeAt(0) <= 122) ||
-        c[0].charCodeAt(0) === 46)
-}
-
-/**
  * Takes in string and tokenizes it to an array based on 'OPERATORS'.
  * @param {string} cmd 
  * @returns array
@@ -54,7 +40,7 @@ const isValidChar = function isValidChar(c) {
 const tokenize = function tokenize(cmd) {
     const MAX_TOKEN_LENGTH = (() => {
         let maxLen = 1;
-        for (const token of TOKEN_FACTORY.tokens) {
+        for (const token of TOKENS.tokens) {
             if (token.length > maxLen) {
                 maxLen = token.length;
             }
@@ -75,10 +61,10 @@ const tokenize = function tokenize(cmd) {
         let tokenMatchFound = true;
         for (let len = MAX_TOKEN_LENGTH; len > 0; --len) {
             const token = cmd.substring(i, i + len);
-            if (TOKEN_FACTORY.tokens.has(token)) {
+            if (TOKENS.tokens.has(token)) {
                 // Can't use "token" variable for comment parsing
-                if (TOKEN_FACTORY.strings.has(cmd.substring(i, i + len))) {
-                    const isSingleLine = TOKEN_FACTORY.stringHolder.singleLine.some(el => el === token);
+                if (TOKENS.strings.has(cmd.substring(i, i + len))) {
+                    const isSingleLine = TOKENS.stringHolder.singleLine.some(el => el === token);
                     while (true) {
                         tokenArr[pos].value += cmd[i];
                         ++i;
@@ -89,23 +75,23 @@ const tokenize = function tokenize(cmd) {
                             break;
                         }
                     }
-                } else if (cmd.substring(i, i + len) === TOKEN_FACTORY.commentHolder.singleLine ||
-                    cmd.substring(i, i + len) === TOKEN_FACTORY.commentHolder.multiLineStart) {
-                    const isSingleLine = TOKEN_FACTORY.commentHolder.singleLine === token;
+                } else if (cmd.substring(i, i + len) === TOKENS.commentHolder.singleLine ||
+                    cmd.substring(i, i + len) === TOKENS.commentHolder.multiLineStart) {
+                    const isSingleLine = TOKENS.commentHolder.singleLine === token;
                     while (true) {
                         tokenArr[pos].value += cmd[i];
                         ++i;
                         if (cmd[i] === LINE_BREAK && isSingleLine) {
                             --i;
                             break;
-                        } else if (cmd.substring(i, i + len) === TOKEN_FACTORY.commentHolder.multiLineEnd && !isSingleLine) {
+                        } else if (cmd.substring(i, i + len) === TOKENS.commentHolder.multiLineEnd && !isSingleLine) {
                             tokenArr[pos].value += cmd.substring(i, i + len);
                             ++i;
                             break;
                         }
                     }
                 } else {
-                    if (!prevWasToken && (TOKEN_FACTORY.types.has(token) || TOKEN_FACTORY.keywords.has(token))) {
+                    if (!prevWasToken && (TOKENS.types.has(token) || TOKENS.keywords.has(token))) {
                         // types and keywords require a space after a _non_ token
                         continue;
                     }
@@ -115,9 +101,9 @@ const tokenize = function tokenize(cmd) {
                         --pos;
                         break;
                     }
-                    if (token === TOKEN_FACTORY.scopeStart) {
+                    if (token === TOKENS.scopeStart) {
                         ++scope;
-                    } else if (token === TOKEN_FACTORY.scopeEnd) {
+                    } else if (token === TOKENS.scopeEnd) {
                         --scope;
                     }
                     tokenArr[pos].value = token;
@@ -154,22 +140,22 @@ const addDescriptors = function addDescriptors(tokenValues, lang) {
     let prevWasVariable = false;
     for (let i = 0; i < len; ++i) {
         const token = tokenValues[i].value;
-        if (TOKEN_FACTORY.types.has(token)) {
+        if (TOKENS.types.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["TYPE"]);
             if (i > 0 && tokenValues[i - 1].value === "=") {
                 if (tokenValues[i - 2].descriptor.has(DESCRIPTORS["VARIABLE"])) {
                     tokenValues[i - 2].descriptor.add(DESCRIPTORS["FUNCTION"]);
                 }
             }
-        } else if (TOKEN_FACTORY.keywords.has(token)) {
+        } else if (TOKENS.keywords.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["KEYWORD"]);
-        } else if (TOKEN_FACTORY.basicOperators.has(token)) {
+        } else if (TOKENS.basicOperators.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
             if (lang === LANGUAGES["cpp"] && token === `::`) {
                 // C++ specific condition
                 tokenValues[i - 1].descriptor.add(DESCRIPTORS["CLASS"]);
             }
-        } else if (TOKEN_FACTORY.comparisonOperators.has(token)) {
+        } else if (TOKENS.comparisonOperators.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
             if (lang === LANGUAGES["cpp"] && token === `>` && i > 2) {
                 // C++ specific condition for #includes
@@ -183,24 +169,24 @@ const addDescriptors = function addDescriptors(tokenValues, lang) {
                     tokenValues[i - 2].descriptor.add(DESCRIPTORS["STRING"]);
                 }
             }
-        } else if (TOKEN_FACTORY.brackets.has(token)) {
+        } else if (TOKENS.brackets.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["BRACKET"]);
             if (prevWasVariable && token === "(") {
                 tokenValues[i - 1].descriptor.add(DESCRIPTORS["FUNCTION"]);
             }
-        } else if (TOKEN_FACTORY.classes.has(token)) {
+        } else if (TOKENS.classes.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["CLASS"]);
-        } else if (TOKEN_FACTORY.others.has(token)) {
+        } else if (TOKENS.others.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["__UNDEF__"]);
         } else {
-            const isString = TOKEN_FACTORY.strings.has(token[0]);
+            const isString = TOKENS.strings.has(token[0]);
             if (isString) {
                 tokenValues[i].descriptor.add(DESCRIPTORS["STRING"]);
                 continue;
             }
 
             const isComment = (() => {
-                for (const commentToken of TOKEN_FACTORY.comments) {
+                for (const commentToken of TOKENS.comments) {
                     const len = commentToken.length;
                     if (len > 0 && token.substring(0, len) === commentToken) {
                         return true;
@@ -228,7 +214,7 @@ const addDescriptors = function addDescriptors(tokenValues, lang) {
 }
 
 const formatContent = function formatContent(tokens) {
-    let formattedContent = `<pre class="wcb-global"><code>\n`; // Open pre-code
+    let formattedContent = `<pre class="html-cb-global"><code>\n`; // Open pre-code
     // Add styled span around tokens
     for (let i = 0; i < tokens.length; ++i) {
         formattedContent += `${tokens[i].prefix}`;
@@ -240,7 +226,7 @@ const formatContent = function formatContent(tokens) {
     }
     formattedContent += `\n</code>\n</pre>`; // close pre-code
 
-    return formattedContent;
+    return formattedContent.replaceAll(`class=""`, ``);
 }
 
 const createSpanOpenTag = function createSpanOpenTag(descriptors) {
@@ -252,31 +238,31 @@ const createSpanOpenTag = function createSpanOpenTag(descriptors) {
                 break;
             case DESCRIPTORS["TYPE"]:
             case DESCRIPTORS["NULL"]:
-                content += `${SPACE}wcb-js-type`;
+                content += `${SPACE}html-cb-type`;
                 break;
             case DESCRIPTORS["FUNCTION"]:
-                content += `${SPACE}wcb-js-function`;
+                content += `${SPACE}html-cb-function`;
                 break;
             case DESCRIPTORS["KEYWORD"]:
-                content += `${SPACE}wcb-js-keyword`;
+                content += `${SPACE}html-cb-keyword`;
                 break;
             case DESCRIPTORS["RETURN"]:
-                content += `${SPACE}wcb-js-return`;
+                content += `${SPACE}html-cb-return`;
                 break;
             case DESCRIPTORS["VARIABLE"]:
-                content += `${SPACE}wcb-js-variable`;
+                content += `${SPACE}html-cb-variable`;
                 break;
             case DESCRIPTORS["STRING"]:
-                content += `${SPACE}wcb-js-string`;
+                content += `${SPACE}html-cb-string`;
                 break;
             case DESCRIPTORS["CLASS"]:
-                content += `${SPACE}wcb-js-class`;
+                content += `${SPACE}html-cb-class`;
                 break;
             case DESCRIPTORS["NUMBER"]:
-                content += `${SPACE}wcb-js-number`;
+                content += `${SPACE}html-cb-number`;
                 break;
             case DESCRIPTORS["COMMENT"]:
-                content += `${SPACE}wcb-js-comment`;
+                content += `${SPACE}html-cb-comment`;
                 break;
             default:
                 break;
@@ -286,7 +272,7 @@ const createSpanOpenTag = function createSpanOpenTag(descriptors) {
 }
 
 const formatContentToCodeblock = function formatContentToCodeblock(content, tokenSets, lang) {
-    TOKEN_FACTORY.resetTokens(tokenSets, lang);
+    TOKENS.resetTokens(tokenSets, lang);
 
     const tokens = (() => {
         const tokenValues = tokenize(content);

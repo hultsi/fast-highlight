@@ -1,5 +1,5 @@
 {
-  "name": "code-blocks",
+  "name": "html-codeblocks",
   "version": "1.0.0",
   "author": "Hultsi",
   "description": "Allows easy code snippet inserting & styling to .html files",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hultsi/webpack-components-plugin.git"
+    "url": "https://github.com/hultsi/html-codeblocks.git"
   },
   "devDependencies": {
     "webpack": "^5.74.0",

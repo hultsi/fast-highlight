@@ -2,14 +2,14 @@ const fs = require("fs");
 const nodePath = require("path");
 const crypto = require("crypto");
 const { formatContentToCodeblock } = require("./code-formatter.js");
-const { LANGUAGES } = require("./TokenFactory.js");
+const { LANGUAGES } = require("./Tokens.js");
 const {
     genericError,
     relativeToAbsolutePath,
     findFilesWithExtRecursive,
 } = require("./filesystem.js");
 
-class JsCodeBlocks {
+class HtmlCodeBlocks {
     constructor(args) {
         this.root = "";
         this.beingWatched = [];
@@ -271,4 +271,4 @@ class JsCodeBlocks {
     }
 }
 
-module.exports = JsCodeBlocks;
+module.exports = HtmlCodeBlocks;
