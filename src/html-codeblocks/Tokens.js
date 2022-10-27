@@ -21,7 +21,10 @@ const DEFAULT_TOKENSETS = (() => {
     return defaults;
 })();
 
-class TokenFactory {
+/**
+ * Holds whatever tokens are necessary for the language being parsed
+ */
+class Tokens {
     constructor() {
         this.stringHolder = {
             singleLine: [``],
@@ -151,5 +154,5 @@ module.exports = {
     SPACE,
     TAB,
     LINE_BREAK,
-    TokenFactory
+    Tokens,
 };

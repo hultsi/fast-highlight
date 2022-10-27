@@ -1,5 +1,5 @@
 const path = require('path');
-const { JsCodeBlocksWebpackPlugin } = require("./src/js-codeblocks/JsCodeBlocks.js")
+const { HtmlCodeBlocksWebpackPlugin } = require("./src/html-codeblocks/HtmlCodeBlocks.js")
 
 module.exports = {
     mode: "development",
@@ -17,7 +17,7 @@ module.exports = {
     },
 
     plugins: [
-        new JsCodeBlocksWebpackPlugin({
+        new HtmlCodeBlocksWebpackPlugin({
             predefinedCss: true,
             optimizeHead: true,
             components: [

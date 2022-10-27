@@ -1,37 +1,37 @@
-.wcb-global {
+.html-cb-global {
     background-color: #000;
     font-size: 20px;
     color: #FFF;
 }
 
-.wcb-js-type {
+.html-cb-type {
     color: #3C79D1;
 }
 
-.wcb-js-keyword {
+.html-cb-keyword {
     color: #C586C0;
 }
 
-.wcb-js-variable {
+.html-cb-variable {
     color: #9CDCFE;
 }
 
-.wcb-js-function {
+.html-cb-function {
     color: #DCDCAA;
 }
 
-.wcb-js-number {
+.html-cb-number {
     color: #B5CEA8;
 }
 
-.wcb-js-comment {
+.html-cb-comment {
     color: #41a70a;
 }
 
-.wcb-js-class {
+.html-cb-class {
     color: #4ec9b0;
 }
 
-.wcb-js-string {
+.html-cb-string {
     color: #Ce9178;
 }

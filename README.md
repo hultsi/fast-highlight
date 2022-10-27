@@ -1,4 +1,4 @@
-# JsCodeBlocks
+# Html CodeBlocks
 
 Allows easy inserting of code snippets to .html files. Currently works only as a webpack plugin but later on could be improved to work as a standalone package as well.
 

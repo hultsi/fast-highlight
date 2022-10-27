@@ -4,7 +4,7 @@ const {
     relativeToAbsolutePath,
     findFilesWithExtRecursive,
 } = require("./filesystem.js");
-const JsCodeBlocks = require("./js-codeblocks-core.js");
+const HtmlCodebLocks = require("./html-codeblocks-core.js");
 
 // TODO
 

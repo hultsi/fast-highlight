@@ -4,15 +4,15 @@ const {
     relativeToAbsolutePath,
     findFilesWithExtRecursive,
 } = require("./filesystem.js");
-const JsCodeBlocks = require("./js-codeblocks-core.js");
+const HtmlCodeBlocks = require("./html-codeblocks-core.js");
 
-class JsCodeBlocksWebpackPlugin extends JsCodeBlocks {
+class HtmlCodeBlocksWebpackPlugin extends HtmlCodeBlocks {
     constructor(args) {
         super(args);
     }
 
     apply(compiler) {
-        const pluginName = JsCodeBlocksWebpackPlugin.name;
+        const pluginName = HtmlCodeBlocksWebpackPlugin.name;
         const { webpack } = compiler;
         const { RawSource } = webpack.sources;
 
@@ -97,4 +97,4 @@ class JsCodeBlocksWebpackPlugin extends JsCodeBlocks {
     }
 }
 
-module.exports = JsCodeBlocksWebpackPlugin;
+module.exports = HtmlCodeBlocksWebpackPlugin;
