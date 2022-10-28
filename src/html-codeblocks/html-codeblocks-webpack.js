@@ -4,9 +4,9 @@ const {
     relativeToAbsolutePath,
     findFilesWithExtRecursive,
 } = require("./filesystem.js");
-const HtmlCodeBlocks = require("./html-codeblocks-core.js");
+const HtmlCodeBlocksCore = require("./html-codeblocks-core.js");
 
-class HtmlCodeBlocksWebpackPlugin extends HtmlCodeBlocks {
+class HtmlCodeBlocksWebpackPlugin extends HtmlCodeBlocksCore {
     constructor(args) {
         super(args);
     }
