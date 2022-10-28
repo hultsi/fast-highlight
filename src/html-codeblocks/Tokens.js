@@ -6,6 +6,9 @@ const pythonTokens = require("./default_tokensets/python.js");
 const LANGUAGES = new Enum().erate([
     "js",
     "cpp",
+    "hpp",
+    "h",
+    "c",
     "py",
 ]);
 
@@ -17,6 +20,9 @@ const DEFAULT_TOKENSETS = (() => {
     const defaults = new Array(Object.keys(LANGUAGES).length);
     defaults[LANGUAGES["js"]] = jsTokens;
     defaults[LANGUAGES["cpp"]] = cppTokens;
+    defaults[LANGUAGES["hpp"]] = cppTokens;
+    defaults[LANGUAGES["c"]] = cppTokens;
+    defaults[LANGUAGES["h"]] = cppTokens;
     defaults[LANGUAGES["py"]] = pythonTokens;
     return defaults;
 })();

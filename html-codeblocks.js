@@ -1,9 +1,9 @@
-const { HtmlCodeBlocks } = require("../../html-codeblocks/HtmlCodeBlocks.js")
+const { HtmlCodeBlocks } = require("./src/html-codeblocks/HtmlCodeBlocks.js")
 
 new HtmlCodeBlocks({
     predefinedCss: true,
     optimizeHead: true,
-    output: "./build",
+    output: __dirname + "/build",
     components: [
         { in: "./src/test-env" }
     ],

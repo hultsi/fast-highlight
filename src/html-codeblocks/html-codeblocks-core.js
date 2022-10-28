@@ -11,7 +11,7 @@ const {
 
 class HtmlCodeBlocksCore {
     constructor(args) {
-        this.root = nodePath.join(process.cwd(), args.output || ``);
+        this.root = args.output;
         this.beingWatched = [];
         this.hasCodeblocks = false;
         this.optimizeHead = (args.optimizeHead !== undefined ? args.optimizeHead : false);
@@ -124,7 +124,7 @@ class HtmlCodeBlocksCore {
 
     replaceHtmlComponents = function replaceHtmlComponents(fileContent) {
         const fileExt = "html";
-        const componentTag = new RegExp(`(<htmlcodeblocks-)(.*)([.]${fileExt}/>)`);
+        const componentTag = new RegExp(`(<html-codeblocks-)(.*)([.]${fileExt}/>)`);
         const componentTagEnd = new RegExp(`/>`);
         const HEAD_TEMPORARY_HASH = `[temporary_head_placeholder_${crypto.createHash(`sha256`).update((+new Date).toString(), `utf8`).digest(`hex`)}]`;
 
@@ -152,9 +152,9 @@ class HtmlCodeBlocksCore {
 
             // Parse the whole component tag and then the file name from it
             const tagEnd = copiedContent.search(componentTagEnd) + "/>".length;
-            const theActualParsedTag = copiedContent.substring(0, tagEnd); // E.g., <htmlcodeblocks-some-file-name-here.html/>
+            const theActualParsedTag = copiedContent.substring(0, tagEnd); // E.g., <html-codeblocks-some-file-name-here.html/>
             const fileName = (() => {
-                const theTagEnding = theActualParsedTag.split("htmlcodeblocks-")[1];
+                const theTagEnding = theActualParsedTag.split("html-codeblocks-")[1];
                 return theTagEnding.split(`/>`)[0];
             })();
 
@@ -199,7 +199,7 @@ class HtmlCodeBlocksCore {
 
     replaceCodeComponents = function replaceCodeComponents(fileContent) {
         const fileExt = "(.{1,5})";
-        const componentTag = new RegExp(`(<htmlcodeblocks-)(.*)([.]${fileExt}/>)`);
+        const componentTag = new RegExp(`(<html-codeblocks-)(.*)([.]${fileExt}/>)`);
         const componentTagEnd = new RegExp(`/>`);
 
         let copiedContent = fileContent;
@@ -219,9 +219,9 @@ class HtmlCodeBlocksCore {
 
             // Parse the whole component tag and then the file name from it
             const tagEnd = copiedContent.search(componentTagEnd) + "/>".length;
-            const theActualParsedTag = copiedContent.substring(0, tagEnd); // E.g., <htmlcodeblocks-some-file-name-here.html/>
+            const theActualParsedTag = copiedContent.substring(0, tagEnd); // E.g., <html-codeblocks-some-file-name-here.html/>
             const fileName = (() => {
-                const theTagEnding = theActualParsedTag.split("htmlcodeblocks-")[1];
+                const theTagEnding = theActualParsedTag.split("html-codeblocks-")[1];
                 return theTagEnding.split(`/>`)[0];
             })();
 
