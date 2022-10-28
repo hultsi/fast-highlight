@@ -9,6 +9,7 @@ const HtmlCodeBlocksCore = require("./html-codeblocks-core.js");
 class HtmlCodeBlocks extends HtmlCodeBlocksCore {
     constructor(args) {
         super(args);
+        if (!this.root) throw "Please define 'output' parameter";
     }
 
     run = function run() {
