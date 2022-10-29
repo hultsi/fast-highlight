@@ -1,15 +1,15 @@
 {
-  "name": "html-codeblocks",
+  "name": "@hultsi/fast-highlight",
   "version": "0.0.1",
   "author": "Hultsi",
-  "description": "Allows easy code snippet inserting & styling to .html files",
+  "description": "Allows easy code highlight & styling to .html files",
   "license": "MIT",
   "scripts": {
     "watch": "webpack --watch"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hultsi/html-codeblocks.git"
+    "url": "https://github.com/hultsi/fast-highlight.git"
   },
   "devDependencies": {
     "webpack": "^5.74.0",
