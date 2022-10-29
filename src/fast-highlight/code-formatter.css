@@ -1,37 +1,37 @@
-.html-cb-global {
+.fhl-global {
     background-color: #000;
     font-size: 16px;
     color: #FFF;
 }
 
-.html-cb-type {
+.fhl-type {
     color: #3C79D1;
 }
 
-.html-cb-keyword {
+.fhl-keyword {
     color: #C586C0;
 }
 
-.html-cb-variable {
+.fhl-variable {
     color: #9CDCFE;
 }
 
-.html-cb-function {
+.fhl-function {
     color: #DCDCAA;
 }
 
-.html-cb-number {
+.fhl-number {
     color: #B5CEA8;
 }
 
-.html-cb-comment {
+.fhl-comment {
     color: #41a70a;
 }
 
-.html-cb-class {
+.fhl-class {
     color: #4ec9b0;
 }
 
-.html-cb-string {
+.fhl-string {
     color: #Ce9178;
 }

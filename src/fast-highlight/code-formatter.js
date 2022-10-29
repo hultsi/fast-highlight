@@ -214,7 +214,7 @@ const addDescriptors = function addDescriptors(tokenValues, lang) {
 }
 
 const formatContent = function formatContent(tokens) {
-    let formattedContent = `<pre class="html-cb-global"><code>\n`; // Open pre-code
+    let formattedContent = `<pre class="fhl-global"><code>\n`; // Open pre-code
     // Add styled span around tokens
     for (let i = 0; i < tokens.length; ++i) {
         formattedContent += `${tokens[i].prefix}`;
@@ -238,31 +238,31 @@ const createSpanOpenTag = function createSpanOpenTag(descriptors) {
                 break;
             case DESCRIPTORS["TYPE"]:
             case DESCRIPTORS["NULL"]:
-                content += `${SPACE}html-cb-type`;
+                content += `${SPACE}fhl-type`;
                 break;
             case DESCRIPTORS["FUNCTION"]:
-                content += `${SPACE}html-cb-function`;
+                content += `${SPACE}fhl-function`;
                 break;
             case DESCRIPTORS["KEYWORD"]:
-                content += `${SPACE}html-cb-keyword`;
+                content += `${SPACE}fhl-keyword`;
                 break;
             case DESCRIPTORS["RETURN"]:
-                content += `${SPACE}html-cb-return`;
+                content += `${SPACE}fhl-return`;
                 break;
             case DESCRIPTORS["VARIABLE"]:
-                content += `${SPACE}html-cb-variable`;
+                content += `${SPACE}fhl-variable`;
                 break;
             case DESCRIPTORS["STRING"]:
-                content += `${SPACE}html-cb-string`;
+                content += `${SPACE}fhl-string`;
                 break;
             case DESCRIPTORS["CLASS"]:
-                content += `${SPACE}html-cb-class`;
+                content += `${SPACE}fhl-class`;
                 break;
             case DESCRIPTORS["NUMBER"]:
-                content += `${SPACE}html-cb-number`;
+                content += `${SPACE}fhl-number`;
                 break;
             case DESCRIPTORS["COMMENT"]:
-                content += `${SPACE}html-cb-comment`;
+                content += `${SPACE}fhl-comment`;
                 break;
             default:
                 break;

@@ -4,9 +4,9 @@ const {
     relativeToAbsolutePath,
     findFilesWithExtRecursive,
 } = require("./filesystem.js");
-const HtmlCodeBlocksCore = require("./html-codeblocks-core.js");
+const FastHighlightCore = require("./fhl-core.js");
 
-class HtmlCodeBlocks extends HtmlCodeBlocksCore {
+class FastHighlight extends FastHighlightCore {
     constructor(args) {
         super(args);
         if (!this.root) throw "Please define 'output' parameter";
@@ -73,4 +73,4 @@ class HtmlCodeBlocks extends HtmlCodeBlocksCore {
     }
 }
 
-module.exports = HtmlCodeBlocks;
+module.exports = FastHighlight;

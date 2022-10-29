@@ -1,6 +1,8 @@
-# Html CodeBlocks
+# This is probably not up to date... to be updated
 
-Allows easy inserting of code snippets to .html files. Works alone or as a webpack plugin.
+# Fast Highlight
+
+Allows easy inserting of code snippets to .html files directly from source files. The highlighted code is inserted during build phase which means no extra js needed on the client side. Works alone or as a webpack plugin.
 
 ## Example
 
@@ -18,7 +20,7 @@ const magicFunction = function magicFunction(first, second) {
 }
 ```
 
-And you'd want this inserted to your html with proper color coding. With JsCodeBlocks this can be done by just defining an html-like component <htmlcodeblocks-magic.js/> in the .html source file.
+And you'd want this inserted to your html with proper color coding. With JsCodeBlocks this can be done by just defining an html-like component <fhl-magic.js/> in the .html source file.
 
 **index.html**
 ```html
@@ -28,12 +30,12 @@ And you'd want this inserted to your html with proper color coding. With JsCodeB
     </head>
     <body>
         <div>I wrote this code:</div>
-        <htmlcodeblocks-magic.js/>
+        <fhl-magic.js/>
     </body>
 </html>
 ```
 
-HtmlCodeBlocks can then check the index.html for any codeblocks and replace them with the corresponding files and color code them accordingly.
+FastHighlight can then check the index.html for any codeblocks and replace them with the corresponding files and color code them accordingly.
 
 ## How to
 
@@ -42,17 +44,15 @@ HtmlCodeBlocks can then check the index.html for any codeblocks and replace them
 To get started. In your webpack.config.js get the plugin and then initiate it under the "plugins" array
 
 ```js
-const { HtmlCodeBlocksWebpackPlugin } = require("HtmlCodeBlocks")
+const { FastHighlightWebpackPlugin } = require("FastHighlight")
 { 
     // webpack struct starts here...
 
     plugins: [
-        new HtmlCodeBlocksWebpackPlugin({
+        new FastHighlightWebpackPlugin({
             // Includes the predefined css file for the snippets
             predefinedCss: true,
-            // This removes unnecessary spaces and line changes from <head>
-            optimizeHead: true,
-            // Tells the plugin where to find the codeblocks <htmlcodeblocks-something.something/>
+            // Tells the plugin where to find the codeblocks <fhl-something.something/>
             components: [
                 { in: "./where/to/look/for/code/snippets" }
             ],
@@ -114,17 +114,15 @@ const { HtmlCodeBlocksWebpackPlugin } = require("HtmlCodeBlocks")
 Standalone usage differs only slightly. First create a js file and define the options like below.
 
 ```js
-const { HtmlCodeBlocks } = require("HtmlCodeBlocks")
+const { FastHighlight } = require("FastHighlight")
 
 // Create the class
-new HtmlCodeBlocks({
+new FastHighlight({
     // Define the output build directory
     output: "./build",
     // Includes the predefined css file for the snippets
     predefinedCss: true,
-    // This removes unnecessary spaces and line changes from <head>
-    optimizeHead: true,
-    // Tells the plugin where to find the codeblocks <htmlcodeblocks-something.something/>
+    // Tells the plugin where to find the codeblocks <fhl-something.something/>
     components: [
         { in: "./where/to/look/for/code/snippets" }
     ],
@@ -182,4 +180,4 @@ Currently there is no "watch" mode in the standalone version.
 
 ### And more
 
-The package also reveals the core implementation HtmlCodeBlocksCore but if you want to use that, I suggest reading the source code.
+The package also reveals the core implementation FastHighlightCore but if you want to use that, I suggest reading the source code.

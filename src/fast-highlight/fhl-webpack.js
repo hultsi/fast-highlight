@@ -4,15 +4,15 @@ const {
     relativeToAbsolutePath,
     findFilesWithExtRecursive,
 } = require("./filesystem.js");
-const HtmlCodeBlocksCore = require("./html-codeblocks-core.js");
+const FastHighlightCore = require("./fhl-core.js");
 
-class HtmlCodeBlocksWebpackPlugin extends HtmlCodeBlocksCore {
+class FastHighlightWebpackPlugin extends FastHighlightCore {
     constructor(args) {
         super(args);
     }
 
     apply(compiler) {
-        const pluginName = HtmlCodeBlocksWebpackPlugin.name;
+        const pluginName = FastHighlightWebpackPlugin.name;
         const { webpack } = compiler;
         const { RawSource } = webpack.sources;
 
@@ -91,4 +91,4 @@ class HtmlCodeBlocksWebpackPlugin extends HtmlCodeBlocksCore {
     }
 }
 
-module.exports = HtmlCodeBlocksWebpackPlugin;
+module.exports = FastHighlightWebpackPlugin;

@@ -1,5 +1,5 @@
 const path = require('path');
-const { HtmlCodeBlocksWebpackPlugin } = require("./src/html-codeblocks/HtmlCodeBlocks.js")
+const { FastHighlightWebpackPlugin } = require("./src/fast-highlight/FastHighlight.js")
 
 module.exports = {
     mode: "development",
@@ -7,7 +7,7 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, "build"),
         filename: "main.js",
-        uniqueName: "webpack-components-plugin",
+        uniqueName: "fast-highlight-plugin",
     },
 
     performance: {
@@ -17,7 +17,7 @@ module.exports = {
     },
 
     plugins: [
-        new HtmlCodeBlocksWebpackPlugin({
+        new FastHighlightWebpackPlugin({
             predefinedCss: true,
             components: [
                 { in: "./src/test-environment" }

@@ -9,7 +9,7 @@ const {
     findFilesWithExtRecursive,
 } = require("./filesystem.js");
 
-class HtmlCodeBlocksCore {
+class FastHighlightCore {
     constructor(args) {
         this.root = args.output;
         this.beingWatched = [];
@@ -123,7 +123,7 @@ class HtmlCodeBlocksCore {
 
     replaceCodeComponents = function replaceCodeComponents(fileContent) {
         const fileExt = "(.{1,5})";
-        const componentTag = new RegExp(`(<html-codeblocks-)(.*)([.]${fileExt}/>)`);
+        const componentTag = new RegExp(`(<fhl-)(.*)([.]${fileExt}/>)`);
         const componentTagEnd = new RegExp(`/>`);
 
         let copiedContent = fileContent;
@@ -143,9 +143,9 @@ class HtmlCodeBlocksCore {
 
             // Parse the whole component tag and then the file name from it
             const tagEnd = copiedContent.search(componentTagEnd) + "/>".length;
-            const theActualParsedTag = copiedContent.substring(0, tagEnd); // E.g., <html-codeblocks-some-file-name-here.html/>
+            const theActualParsedTag = copiedContent.substring(0, tagEnd); // E.g., <fhl-some-file-name-here.html/>
             const fileName = (() => {
-                const theTagEnding = theActualParsedTag.split("html-codeblocks-")[1];
+                const theTagEnding = theActualParsedTag.split("fhl-")[1];
                 return theTagEnding.split(`/>`)[0];
             })();
 
@@ -183,4 +183,4 @@ class HtmlCodeBlocksCore {
     }
 }
 
-module.exports = HtmlCodeBlocksCore;
+module.exports = FastHighlightCore;

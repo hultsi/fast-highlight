@@ -1,6 +1,6 @@
-const { HtmlCodeBlocks } = require("./src/html-codeblocks/HtmlCodeBlocks.js")
+const { FastHighlight } = require("./src/fast-highlight/FastHighlight.js")
 
-new HtmlCodeBlocks({
+new FastHighlight({
     predefinedCss: true,
     output: __dirname + "/build",
     components: [
