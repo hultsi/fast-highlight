@@ -19,7 +19,6 @@ module.exports = {
     plugins: [
         new HtmlCodeBlocksWebpackPlugin({
             predefinedCss: true,
-            optimizeHead: true,
             components: [
                 { in: "./src/test-environment" }
             ],

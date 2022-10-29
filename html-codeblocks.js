@@ -2,14 +2,13 @@ const { HtmlCodeBlocks } = require("./src/html-codeblocks/HtmlCodeBlocks.js")
 
 new HtmlCodeBlocks({
     predefinedCss: true,
-    optimizeHead: true,
     output: __dirname + "/build",
     components: [
-        { in: "./src/test-env" }
+        { in: "./src/test-environment" }
     ],
     sources: [
-        { in: "./src/test-env/index.html", out: "./index.html" },
-        { in: "./src/test-env/css", out: "./css/" }
+        { in: "./src/test-environment/index.html", out: "./index.html" },
+        { in: "./src/test-environment/css", out: "./css/" }
     ],
     codeblockSettings: {
         css: { out: "./css/code-formatter.css" },

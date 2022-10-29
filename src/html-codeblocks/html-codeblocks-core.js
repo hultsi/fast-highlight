@@ -14,7 +14,6 @@ class HtmlCodeBlocksCore {
         this.root = args.output;
         this.beingWatched = [];
         this.hasCodeblocks = false;
-        this.optimizeHead = (args.optimizeHead !== undefined ? args.optimizeHead : false);
         this.predefinedCss = (args.predefinedCss !== undefined ? args.predefinedCss : true);
 
         const componentPaths = (() => {
@@ -181,18 +180,6 @@ class HtmlCodeBlocksCore {
             `;
         }
         return [parsedContent, componentPathsArr];
-    }
-
-    optimizeHeader = function optimizeHeader(content) {
-        const ind = content.search(/<body>/);
-        const upToBodyTag = content.substring(0, ind);
-        const andTheRest = content.substring(ind);
-
-        const oneLiner = upToBodyTag.replaceAll(/[\r\n\t]*/g, "").trim();
-
-        const uselessSpacesRemoved = oneLiner.replaceAll(/([>])([\s]+?)([<])/g, "$1$3");
-
-        return `${uselessSpacesRemoved}${andTheRest}`;
     }
 }
 
