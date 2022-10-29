@@ -8,6 +8,8 @@ const FastHighlightCore = require("./fhl-core.js");
 
 class FastHighlight extends FastHighlightCore {
     constructor(args) {
+        console.log("\n  Finding fhl matches...\n")
+        console.time("  Writing file after");
         super(args);
         if (!this.root) throw "Please define 'output' parameter";
     }
@@ -49,6 +51,7 @@ class FastHighlight extends FastHighlightCore {
                 if (!isDir) {
                     const path = nodePath.join(this.root, this.files[fileInd].out);
                     fs.mkdirSync(nodePath.dirname(path), { recursive: true });
+                    console.timeLog(`  Writing file after`, `\t\x1b[32m${path}\x1b[0m`);
                     fs.writeFileSync(path, parsedContent);
                 } else {
                     const fileName = (() => {
@@ -57,6 +60,7 @@ class FastHighlight extends FastHighlightCore {
                     })();
                     const path = nodePath.join(this.root, this.files[fileInd].out, "/", fileName);
                     fs.mkdirSync(nodePath.dirname(path), { recursive: true });
+                    console.timeLog(`  Writing file after`, `\t\x1b[32m${path}\x1b[0m`);
                     fs.writeFileSync(path, parsedContent);
                 }
 
@@ -70,6 +74,7 @@ class FastHighlight extends FastHighlightCore {
                 fs.writeFileSync(path, cbCss);
             }
         }
+        console.log("");
     }
 }
 

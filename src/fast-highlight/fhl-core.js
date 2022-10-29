@@ -173,11 +173,9 @@ class FastHighlightCore {
         // Otherwise add the link tag to the end of head
         const ind = parsedContent.search(/<\/head>/);
         if (ind > -1) {
-            parsedContent = `
-                ${parsedContent.substring(0, ind)}
-                ${linkTag}
-                ${parsedContent.substring(ind)}
-            `;
+            const beginning = parsedContent.substring(0, ind).trim();
+            const ending = parsedContent.substring(ind);
+            parsedContent = `${beginning}${linkTag.trim()}${ending}`;
         }
         return [parsedContent, componentPathsArr];
     }

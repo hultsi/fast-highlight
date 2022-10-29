@@ -20,18 +20,22 @@
     color: #DCDCAA;
 }
 
+.fhl-operator {
+    color: #FFFFFF;
+}
+
 .fhl-number {
     color: #B5CEA8;
 }
 
 .fhl-comment {
-    color: #41a70a;
+    color: #41A70A;
 }
 
 .fhl-class {
-    color: #4ec9b0;
+    color: #4EC9B0;
 }
 
 .fhl-string {
-    color: #Ce9178;
+    color: #CE9178;
 }

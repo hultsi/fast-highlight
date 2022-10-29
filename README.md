@@ -1,5 +1,3 @@
-# This is probably not up to date... to be updated
-
 # Fast Highlight
 
 Allows easy inserting of code snippets to .html files directly from source files. The highlighted code is inserted during build phase which means no extra js needed on the client side. Works alone or as a webpack plugin.
@@ -70,7 +68,9 @@ const { FastHighlightWebpackPlugin } = require("FastHighlight")
                      * The key here needs to match the file format abbreviation
                      * E.g., js/cpp/hpp/py/json/etc.
                      */
-                    // Js has predefined sets already so not necessarily needed
+                    // You can redefine keysets here if you wish
+                    // Many languages are already supported so for example this is not needed
+                    // unless you want to change the color coding scheme
                     js: {
                         types: new Set([
                             `let`, `const`, `var`, `function`,
@@ -81,13 +81,8 @@ const { FastHighlightWebpackPlugin } = require("FastHighlight")
                             `if`, `else`, `of`, `in`, `new`,
                         ]),
                     },
-                    // Cpp has predefined sets already so not necessarily needed
-                    cpp: {
-                        types: new Set([
-                            `const`, `float`, `static`, `nullptr`,
-                        ]),
-                    },
-                    // Other arbitrary languages are fine as well though
+                    // Other arbitrary languages are fine as well though. The file ending
+                    // must be .wow in this case
                     wow: {
                         types: new Set([
                             `my_type`,
@@ -118,8 +113,8 @@ const { FastHighlight } = require("FastHighlight")
 
 // Create the class
 new FastHighlight({
-    // Define the output build directory
-    output: "./build",
+    // Define the output build directory.
+    output: __dirname + "/build",
     // Includes the predefined css file for the snippets
     predefinedCss: true,
     // Tells the plugin where to find the codeblocks <fhl-something.something/>
@@ -140,7 +135,9 @@ new FastHighlight({
              * The key here needs to match the file format abbreviation
              * E.g., js/cpp/hpp/py/json/etc.
              */
-            // Js has predefined sets already so not necessarily needed
+            // You can redefine keysets here if you wish
+            // Many languages are already supported so for example this is not needed
+            // unless you want to change the color coding scheme
             js: {
                 types: new Set([
                     `let`, `const`, `var`, `function`,
@@ -151,13 +148,8 @@ new FastHighlight({
                     `if`, `else`, `of`, `in`, `new`,
                 ]),
             },
-            // Cpp has predefined sets already so not necessarily needed
-            cpp: {
-                types: new Set([
-                    `const`, `float`, `static`, `nullptr`,
-                ]),
-            },
-            // Other arbitrary languages are fine as well though
+            // Other arbitrary languages are fine as well though. The file ending
+            // must be .wow in this case
             wow: {
                 types: new Set([
                     `my_type`,
@@ -181,3 +173,51 @@ Currently there is no "watch" mode in the standalone version.
 ### And more
 
 The package also reveals the core implementation FastHighlightCore but if you want to use that, I suggest reading the source code.
+
+## Custom CSS
+
+You can create a css file that looks like the following and change the styling to match your liking. Then instead of using the predefined css, in the settings object of FastHighlight, you can copy your css files with FastHighlight to whichever folder you want.
+
+```css
+.fhl-global {
+    background-color: #000;
+    font-size: 16px;
+    color: #FFF;
+}
+
+.fhl-type {
+    color: #3C79D1;
+}
+
+.fhl-keyword {
+    color: #C586C0;
+}
+
+.fhl-variable {
+    color: #9CDCFE;
+}
+
+.fhl-function {
+    color: #DCDCAA;
+}
+
+.fhl-operator {
+    color: #FFFFFF;
+}
+
+.fhl-number {
+    color: #B5CEA8;
+}
+
+.fhl-comment {
+    color: #41A70A;
+}
+
+.fhl-class {
+    color: #4EC9B0;
+}
+
+.fhl-string {
+    color: #CE9178;
+}
+```

@@ -226,7 +226,9 @@ const formatContent = function formatContent(tokens) {
     }
     formattedContent += `\n</code>\n</pre>`; // close pre-code
 
-    return formattedContent.replaceAll(`class=""`, ``);
+    const emptyClassesRemoved = formattedContent.replaceAll(/\s{0,1}?class=""/g, ``);
+    const onlySpacesSpansRemoved = emptyClassesRemoved.replaceAll(/(<span>)(\s{0,}?)(<\/span>)/g, `$2`);
+    return onlySpacesSpansRemoved.replaceAll(/class="\s/g, `class="`);
 }
 
 const createSpanOpenTag = function createSpanOpenTag(descriptors) {
@@ -245,6 +247,9 @@ const createSpanOpenTag = function createSpanOpenTag(descriptors) {
                 break;
             case DESCRIPTORS["KEYWORD"]:
                 content += `${SPACE}fhl-keyword`;
+                break;
+            case DESCRIPTORS["OPERATOR"]:
+                content += `${SPACE}fhl-operator`;
                 break;
             case DESCRIPTORS["RETURN"]:
                 content += `${SPACE}fhl-return`;

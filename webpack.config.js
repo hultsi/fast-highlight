@@ -29,21 +29,6 @@ module.exports = {
             codeblockSettings: {
                 css: { out: "./css/code-formatter.css" },
                 formatting: {
-                    js: {
-                        types: new Set([
-                            `let`, `const`, `var`, `function`,
-                            `static`, `null`,
-                        ]),
-                        keywords: new Set([
-                            `for`, `while`, `return`,
-                            `if`, `else`, `of`, `in`, `new`,
-                        ]),
-                    },
-                    cpp: {
-                        types: new Set([
-                            `const`, `float`, `static`, `nullptr`,
-                        ]),
-                    },
                     asd: {
                         types: new Set([
                             `my_type`,
