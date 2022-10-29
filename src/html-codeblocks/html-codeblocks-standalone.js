@@ -38,13 +38,11 @@ class HtmlCodeBlocks extends HtmlCodeBlocksCore {
                 const [parsedContent, componentPaths] = (() => {
                     const splitted = filesAbs[i].split(".");
                     if (splitted[splitted.length - 1] === "html") {
-                        const [htmlComponentsReplaced, htmlComponents] = this.replaceHtmlComponents(file);
-                        const [codeComponentsReplaced, codeComponents] = this.replaceCodeComponents(htmlComponentsReplaced);
-
+                        const [codeComponentsReplaced, codeComponents] = this.replaceCodeComponents(file);
                         if (this.optimizeHead) {
-                            return [this.optimizeHeader(codeComponentsReplaced), [...htmlComponents, ...codeComponents]];
+                            return [this.optimizeHeader(codeComponentsReplaced), codeComponents];
                         }
-                        return [codeComponentsReplaced, [...htmlComponents, ...codeComponents]];
+                        return [codeComponentsReplaced, codeComponents];
                     } else {
                         // Not an .html, just return as is
                         return [file, new Array(0)];
