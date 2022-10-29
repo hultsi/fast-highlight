@@ -39,9 +39,13 @@ class FastHighlightCore {
         }
 
         this.codeblockCssPath = args.codeblockSettings.css.out;
+        // TODO: this probably should be moved to Tokens.js or something
         this.codeblockFormatting = {
             js: {},
             cpp: {},
+            hpp: {},
+            h: {},
+            c: {},
             py: {},
         };
         for (const [key, val] of Object.entries(args.codeblockSettings.formatting)) {

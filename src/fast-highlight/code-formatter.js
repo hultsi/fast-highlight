@@ -151,13 +151,18 @@ const addDescriptors = function addDescriptors(tokenValues, lang) {
             tokenValues[i].descriptor.add(DESCRIPTORS["KEYWORD"]);
         } else if (TOKENS.basicOperators.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
-            if (lang === LANGUAGES["cpp"] && token === `::`) {
-                // C++ specific condition
-                tokenValues[i - 1].descriptor.add(DESCRIPTORS["CLASS"]);
+            if (lang === LANGUAGES["cpp"] || lang === LANGUAGES["hpp"] ||
+                lang === LANGUAGES["c"] || lang === LANGUAGES["h"]) {
+                if (token === `::`) {
+                    // C/C++ specific condition
+                    tokenValues[i - 1].descriptor.add(DESCRIPTORS["CLASS"]);
+                }
             }
         } else if (TOKENS.comparisonOperators.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
-            if (lang === LANGUAGES["cpp"] && token === `>` && i > 2) {
+            if (lang === LANGUAGES["cpp"] || lang === LANGUAGES["hpp"] ||
+                lang === LANGUAGES["c"] || lang === LANGUAGES["h"]) {
+                if (token !== `>` && i <= 2) continue;
                 // C++ specific condition for #includes
                 if ((tokenValues[i - 1].descriptor.has(DESCRIPTORS["VARIABLE"]) ||
                     tokenValues[i - 1].descriptor.has(DESCRIPTORS["CLASS"])) &&

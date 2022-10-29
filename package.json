@@ -1,6 +1,6 @@
 {
   "name": "html-codeblocks",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "author": "Hultsi",
   "description": "Allows easy code snippet inserting & styling to .html files",
   "license": "MIT",
