@@ -3,7 +3,7 @@ const { HtmlCodeBlocksWebpackPlugin } = require("./src/html-codeblocks/HtmlCodeB
 
 module.exports = {
     mode: "development",
-    entry: "./src/test-env/main.js",
+    entry: "./src/test-environment/main.js",
     output: {
         path: path.resolve(__dirname, "build"),
         filename: "main.js",
@@ -21,11 +21,11 @@ module.exports = {
             predefinedCss: true,
             optimizeHead: true,
             components: [
-                { in: "./src/test-env" }
+                { in: "./src/test-environment" }
             ],
             sources: [
-                { in: "./src/test-env/index.html", out: "./index.html" },
-                { in: "./src/test-env/css", out: "./css/" }
+                { in: "./src/test-environment/index.html", out: "./index.html" },
+                { in: "./src/test-environment/css", out: "./css/" }
             ],
             codeblockSettings: {
                 css: { out: "./css/code-formatter.css" },
