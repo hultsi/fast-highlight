@@ -26,7 +26,7 @@ module.exports = {
                 { in: "./src/test-environment/index.html", out: "./index.html" },
                 { in: "./src/test-environment/css", out: "./css/" }
             ],
-            codeblockSettings: {
+            fhlSettings: {
                 css: { out: "./css/code-formatter.css" },
                 formatting: {
                     asd: {

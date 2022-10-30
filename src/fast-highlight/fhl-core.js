@@ -37,7 +37,7 @@ class FastHighlightCore {
             this.files[i] = { in: relativeToAbsolutePath(args.sources[i].in), out: args.sources[i].out };
         }
 
-        this.codeblockCssPath = args.codeblockSettings.css.out;
+        this.codeblockCssPath = args.fhlSettings.css.out;
         
         this.codeblockFormatting = (() => {
             let out = {};
@@ -46,7 +46,7 @@ class FastHighlightCore {
             }
             return out;
         })();
-        for (const [key, val] of Object.entries(args.codeblockSettings.formatting)) {
+        for (const [key, val] of Object.entries(args.fhlSettings.formatting)) {
             this.codeblockFormatting[key] = val;
         }
     }

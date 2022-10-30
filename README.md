@@ -59,7 +59,7 @@ const { FastHighlightWebpackPlugin } = require("FastHighlight")
                 { in: "./index.html", out: "./index.html" },
                 { in: "./css", out: "./css/" }
             ],
-            codeblockSettings: {
+            fhlSettings: {
                 // Where to save the predefined css
                 css: { out: "./css/code-formatter.css" },
                 // These define the sets for the types/keywords/etc.
@@ -126,7 +126,7 @@ new FastHighlight({
         { in: "./index.html", out: "./index.html" },
         { in: "./css", out: "./css/" }
     ],
-    codeblockSettings: {
+    fhlSettings: {
         // Where to save the predefined css
         css: { out: "./css/code-formatter.css" },
         // These define the sets for the types/keywords/etc.
@@ -173,6 +173,34 @@ Currently there is no "watch" mode in the standalone version.
 ### And more
 
 The package also reveals the core implementation FastHighlightCore but if you want to use that, I suggest reading the source code.
+
+
+## Redefinable sets
+
+The sets that can be redefined in the *fhlSettings.formatting* object are the following.
+
+```js
+fhlSettings: {
+    formatting: {
+        types = new Set(["const", "float", ...]),
+        keywords = new Set(["if", "else", ...]),
+        basicOperators = new Set(["=", "+", ...]),
+        comparisonOperators = new Set(["==", "!=", ...]),
+        brackets = new Set(["(", ")", ...]),
+        classes = new Set(["MyClass", "SomeOtherClass", ...]),
+        comments: {
+            singleLine: "//",
+            multiLineStart: "/*",
+            multiLineEnd: "*/",
+        },
+        strings: {
+            // These need to be in an array
+            singleLine: ['"', "'"],
+            multiLine: ["`"],
+        },
+    }
+}
+```
 
 ## Custom CSS
 
