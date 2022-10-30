@@ -1,11 +1,14 @@
 module.exports = {
     types: new Set([
         `let`, `const`, `var`, `function`,
-        `static`, `null`,
+        `static`, `null`, `typepof`, `true`, `false`,
+        `this`, `delete`
     ]),
     keywords: new Set([
-        `for`, `while`, `return`,
+        `for`, `while`, `return`, `try`, `catch`,
         `if`, `else`, `of`, `in`, `new`,
+        `async`, `await`, `with`, `yield`,
+        `switch`, `case`, `break`,
     ]),
     basicOperators: new Set([
         `+`, `-`, `*`, `/`, `=`,
@@ -23,8 +26,8 @@ module.exports = {
         `}`, `[`, `]`,
     ]),
     classes: new Set([
-        `Date`, `Math`, `Set`, `Object`,
-        `Array`, `Number`,
+        `super`, `Date`, `Math`, `Set`,
+        `Object`, `Array`, `Number`,
     ]),
     strings: {
         singleLine: [`"`, `'`],
