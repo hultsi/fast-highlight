@@ -1,9 +1,9 @@
 const path = require('path');
-const { FastHighlightWebpackPlugin } = require("./src/fast-highlight/FastHighlight.js")
+const { FastHighlightWebpackPlugin } = require("./src/FastHighlight.js")
 
 module.exports = {
     mode: "development",
-    entry: "./src/test-environment/main.js",
+    entry: "./tests/main.js",
     output: {
         path: path.resolve(__dirname, "build"),
         filename: "main.js",
@@ -20,11 +20,11 @@ module.exports = {
         new FastHighlightWebpackPlugin({
             predefinedCss: true,
             components: [
-                { in: "./src/test-environment" }
+                { in: "./tests" }
             ],
             sources: [
-                { in: "./src/test-environment/index.html", out: "./index.html" },
-                { in: "./src/test-environment/css", out: "./css/" }
+                { in: "./tests/index.html", out: "./index.html" },
+                { in: "./tests/css", out: "./css/" }
             ],
             fhlSettings: {
                 css: { out: "./css/code-formatter.css" },

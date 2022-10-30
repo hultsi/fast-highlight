@@ -1,7 +1,7 @@
 {
-  "name": "@hultsi/fast-highlight",
+  "name": "fast-highlight",
   "version": "0.0.1",
-  "main": "FastHighlight.js",
+  "main": "./src/FastHighlight.js",
   "author": "Hultsi",
   "description": "Allows easy code highlight & styling to .html files",
   "license": "MIT",

@@ -1,14 +1,14 @@
-const { FastHighlight } = require("./src/fast-highlight/FastHighlight.js")
+const { FastHighlight } = require("./src/FastHighlight.js")
 
 new FastHighlight({
     predefinedCss: true,
     output: __dirname + "/build",
     components: [
-        { in: __dirname + "/src/test-environment" }
+        { in: __dirname + "/tests" }
     ],
     sources: [
-        { in: __dirname + "/src/test-environment/index.html", out: "./index.html" },
-        { in: __dirname + "/src/test-environment/css", out: "./css/" }
+        { in: __dirname + "/tests/index.html", out: "./index.html" },
+        { in: __dirname + "/tests/css", out: "./css/" }
     ],
     fhlSettings: {
         css: { out: "./css/code-formatter.css" },
