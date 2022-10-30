@@ -163,7 +163,7 @@ const addDescriptors = function addDescriptors(tokenValues, lang) {
             if (lang === LANGUAGES["cpp"] || lang === LANGUAGES["hpp"] ||
                 lang === LANGUAGES["c"] || lang === LANGUAGES["h"]) {
                 if (token !== `>` && i <= 2) continue;
-                // C++ specific condition for #includes
+                // C/C++ specific condition for #includes
                 if ((tokenValues[i - 1].descriptor.has(DESCRIPTORS["VARIABLE"]) ||
                     tokenValues[i - 1].descriptor.has(DESCRIPTORS["CLASS"])) &&
                     tokenValues[i - 2].value === `<` &&
@@ -184,12 +184,14 @@ const addDescriptors = function addDescriptors(tokenValues, lang) {
         } else if (TOKENS.others.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["__UNDEF__"]);
         } else {
+            // String?
             const isString = TOKENS.strings.has(token[0]);
             if (isString) {
                 tokenValues[i].descriptor.add(DESCRIPTORS["STRING"]);
                 continue;
             }
 
+            // Comment?
             const isComment = (() => {
                 for (const commentToken of TOKENS.comments) {
                     const len = commentToken.length;
@@ -204,8 +206,13 @@ const addDescriptors = function addDescriptors(tokenValues, lang) {
                 continue;
             }
 
+            // Variable or number?
             const num = Number(token[0]);
             if (Number.isNaN(num)) {
+                if (i > 0 && (tokenValues[i - 1].value === "class" || tokenValues[i - 1].value === "namespace")) {
+                    tokenValues[i].descriptor.add(DESCRIPTORS["CLASS"]);
+                    continue;
+                }
                 tokenValues[i].descriptor.add(DESCRIPTORS["VARIABLE"]);
                 prevWasVariable = true;
                 continue;

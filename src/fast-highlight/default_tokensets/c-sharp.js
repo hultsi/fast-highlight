@@ -1,17 +1,12 @@
 module.exports = {
     types: new Set([
-        `const`, `char`, `int`, `float`, `double`, `long`,
-        `short`, `nullptr`, `static`, `constexpr`, `volatile`,
-        `mutable`, `static_cast`, `reinterpret_cast`, `const_cast`,
-        `dynamic_cast`, `typeof`, `sizeof`, `enum`, `void`,
-        `true`, `false`, `union`, `this`, `class`, `namespace`,
-        `bool`,
+        `char`, `int`, `float`, `double`, `long`,
+        `static`, `void`, `bool`, `class`, `string`,
+        `namespace`,
     ]),
     keywords: new Set([
         `for`, `while`, `return`, `do`, `using`,
-        `if`, `else`, `new`, `delete`, `extern`,
-        `#ifdef`, `#endif`, `#include`, `#pragma`,
-        `try`, `catch`, `switch`, `case`, `break`,
+        `if`, `else`,
     ]),
     basicOperators: new Set([
         `+`, `-`, `*`, `/`, `=`,
@@ -29,9 +24,7 @@ module.exports = {
         `}`, `[`, `]`,
     ]),
     classes: new Set([
-        `vector`, `array`, `string`,
-        `int8_t`, `int16_t`, `int32_t`,
-        `uint8_t`, `uint16_t`, `uint32_t`
+        `System`,
     ]),
     strings: {
         singleLine: [`"`, `'`],

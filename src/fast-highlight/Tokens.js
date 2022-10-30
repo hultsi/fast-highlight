@@ -2,15 +2,19 @@ const Enum = require("./Enum.js");
 const jsTokens = require("./default_tokensets/javascript.js");
 const cppTokens = require("./default_tokensets/cpp.js");
 const pythonTokens = require("./default_tokensets/python.js");
+const cSharpTokens = require("./default_tokensets/c-sharp.js");
 
-const LANGUAGES = new Enum().erate([
+const DEFAULT_SUPPORTED_FILES = [
     "js",
     "cpp",
     "hpp",
     "h",
     "c",
     "py",
-]);
+    "cs"
+];
+
+const LANGUAGES = new Enum().erate(DEFAULT_SUPPORTED_FILES);
 
 const SPACE = " ";
 const TAB = "\t";
@@ -24,6 +28,7 @@ const DEFAULT_TOKENSETS = (() => {
     defaults[LANGUAGES["c"]] = cppTokens;
     defaults[LANGUAGES["h"]] = cppTokens;
     defaults[LANGUAGES["py"]] = pythonTokens;
+    defaults[LANGUAGES["cs"]] = cSharpTokens;
     return defaults;
 })();
 
@@ -156,6 +161,7 @@ class Tokens {
 }
 
 module.exports = {
+    DEFAULT_SUPPORTED_FILES,
     LANGUAGES,
     SPACE,
     TAB,

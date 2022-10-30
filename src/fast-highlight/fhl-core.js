@@ -1,8 +1,7 @@
 const fs = require("fs");
 const nodePath = require("path");
-const crypto = require("crypto");
 const { formatContentToCodeblock } = require("./code-formatter.js");
-const { LANGUAGES } = require("./Tokens.js");
+const { DEFAULT_SUPPORTED_FILES, LANGUAGES } = require("./Tokens.js");
 const {
     genericError,
     relativeToAbsolutePath,
@@ -39,15 +38,14 @@ class FastHighlightCore {
         }
 
         this.codeblockCssPath = args.codeblockSettings.css.out;
-        // TODO: this probably should be moved to Tokens.js or something
-        this.codeblockFormatting = {
-            js: {},
-            cpp: {},
-            hpp: {},
-            h: {},
-            c: {},
-            py: {},
-        };
+        
+        this.codeblockFormatting = (() => {
+            let out = {};
+            for (let i = 0; i < DEFAULT_SUPPORTED_FILES.length; ++i) {
+                out[DEFAULT_SUPPORTED_FILES[i]] = {};
+            }
+            return out;
+        })();
         for (const [key, val] of Object.entries(args.codeblockSettings.formatting)) {
             this.codeblockFormatting[key] = val;
         }
