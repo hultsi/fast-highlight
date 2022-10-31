@@ -1,19 +1,21 @@
 {
-  "name": "fast-highlight",
-  "version": "0.0.1",
-  "main": "./src/FastHighlight.js",
-  "author": "Hultsi",
-  "description": "Allows easy code highlight & styling to .html files",
-  "license": "MIT",
-  "scripts": {
-    "watch": "webpack --watch"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/hultsi/fast-highlight.git"
-  },
-  "devDependencies": {
-    "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0"
-  }
+	"name": "fast-highlight",
+	"version": "0.0.1",
+	"main": "./src/FastHighlight.js",
+	"author": "Hultsi",
+	"description": "Allows easy code highlight & styling to .html files",
+	"license": "MIT",
+	"keywords": [
+		"highlight",
+		"codeblock"
+	],
+	"scripts": {
+		"update-version": "node ./tools/update-version.js",
+		"build": "npm pack && cd tests && npm install ../fast-highlight-0.0.1.tgz",
+		"build-sh": "./tools/build.sh"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/hultsi/fast-highlight.git"
+	}
 }

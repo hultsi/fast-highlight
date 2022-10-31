@@ -1,0 +1,17 @@
+name: Build & install package
+run-name: Build & install package
+on: [push]
+jobs:
+  Build-And-Install-Package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Set up node v16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+      - name: Create package and try running
+        shell: bash
+        run: npm run build-sh

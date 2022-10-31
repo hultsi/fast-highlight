@@ -1,0 +1,18 @@
+{
+  "name": "tests",
+  "version": "0.0.1",
+  "main": "main.js",
+  "scripts": {
+    "fhl": "node fast-highlight.js",
+    "webpack": "webpack",
+    "watch": "webpack --watch"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  },
+  "dependencies": {
+    "fast-highlight": "file:../fast-highlight-0.0.1.tgz"
+  }
+}
