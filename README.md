@@ -168,7 +168,7 @@ new FastHighlight({
 
 Then run the script with node.
 
-Currently there is no "watch" mode in the standalone version.
+Currently there is no native "watch" mode in the standalone version.
 
 ### And more
 
@@ -182,12 +182,12 @@ The sets that can be redefined in the *fhlSettings.formatting* object are the fo
 ```js
 fhlSettings: {
     formatting: {
-        types = new Set(["const", "float", ...]),
-        keywords = new Set(["if", "else", ...]),
-        basicOperators = new Set(["=", "+", ...]),
-        comparisonOperators = new Set(["==", "!=", ...]),
-        brackets = new Set(["(", ")", ...]),
-        classes = new Set(["MyClass", "SomeOtherClass", ...]),
+        types: new Set(["const", "float", ...]),
+        keywords: new Set(["if", "else", ...]),
+        basicOperators: new Set(["=", "+", ...]),
+        comparisonOperators: new Set(["==", "!=", ...]),
+        brackets: new Set(["(", ")", ...]),
+        classes: new Set(["MyClass", "SomeOtherClass", ...]),
         comments: {
             singleLine: "//",
             multiLineStart: "/*",
