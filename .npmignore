@@ -1,6 +1,8 @@
-node_modules
-build
 tests
+build
+node_modules
 package-lock.json
 fast-highlight.js
 webpack.config.js
+.github
+VERSION.txt
