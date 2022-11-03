@@ -18,7 +18,7 @@ const magicFunction = function magicFunction(first, second) {
 }
 ```
 
-And you'd want this inserted to your html with proper color coding. With JsCodeBlocks this can be done by just defining an html-like component <fhl-magic.js/> in the .html source file.
+And you'd want this inserted to your html with proper color coding. With FastHighlight this can be done by just defining an html-like component <fhl-magic.js/> in the .html source file.
 
 **index.html**
 ```html
@@ -35,17 +35,44 @@ And you'd want this inserted to your html with proper color coding. With JsCodeB
 
 FastHighlight can then check the index.html for any codeblocks and replace them with the corresponding files and color code them accordingly.
 
-## How to
+## First
 
-First install the package with
+Install the package with
 
-```
+```sh
 npm install -D fast-highlight
 ```
 
-### As a webpack plugin
+## As a webpack plugin
 
 To get started. In your webpack.config.js get the plugin and then initiate it under the "plugins" array
+
+**The simplest approach**
+```js
+const { FastHighlightWebpackPlugin } = require("FastHighlight")
+{ 
+    // webpack struct starts here...
+    plugins: [
+        new FastHighlightWebpackPlugin({
+            // Tells the plugin where to find the codeblocks <fhl-something.something/>
+            components: [
+                { in: "./where/to/look/for/code/snippets" }
+            ],
+            // Any source files that are needed. They are parsed & then copied to the webpack build folder
+            sources: [
+                { in: "./index.html", out: "./index.html" },
+            ],
+            fhlSettings: {
+                // Where to save the predefined css
+                css: { out: "./css/code-formatter.css" },
+            }
+        })
+    ],
+    // Webpack struct continues...
+};
+```
+
+**A bit more thorough approach**
 
 ```js
 const { FastHighlightWebpackPlugin } = require("FastHighlight")
@@ -63,6 +90,8 @@ const { FastHighlightWebpackPlugin } = require("FastHighlight")
             // Any source files that are needed. They are parsed & then copied to the webpack build folder
             sources: [
                 { in: "./index.html", out: "./index.html" },
+                // You can also copy your css (or any other files for that matter)
+                // to the output build location
                 { in: "./css", out: "./css/" }
             ],
             fhlSettings: {
@@ -110,7 +139,7 @@ const { FastHighlightWebpackPlugin } = require("FastHighlight")
 
 ```
 
-### As a standalone
+## As a standalone
 
 Standalone usage differs only slightly. First create a js file and define the options like below.
 
@@ -180,7 +209,6 @@ Currently there is no native "watch" mode in the standalone version.
 
 The package also reveals the core implementation FastHighlightCore but if you want to use that, I suggest reading the source code.
 
-
 ## Redefinable sets
 
 The sets that can be redefined in the *fhlSettings.formatting* object are the following.
@@ -215,8 +243,11 @@ You can create a css file that looks like the following and change the styling t
 ```css
 .fhl-global {
     background-color: #000;
-    font-size: 16px;
     color: #FFF;
+    line-height: 1.2;
+    font-size: 16px;
+    padding-left: 5px;
+    overflow-x: auto;
 }
 
 .fhl-type {
