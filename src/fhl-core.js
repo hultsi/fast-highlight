@@ -126,7 +126,7 @@ class FastHighlightCore {
     }
 
     replaceCodeComponents = function replaceCodeComponents(fileContent) {
-        const fileExt = "(.{1,5})";
+        const fileExt = "(.{1,6})";
         const componentTag = new RegExp(`(<fhl-)(.*)([.]${fileExt}/>)`);
         const componentTagEnd = new RegExp(`/>`);
 
@@ -168,12 +168,11 @@ class FastHighlightCore {
             parsedContent += formatContentToCodeblock(componentContent, this.codeblockFormatting[lang], LANGUAGES[lang]);
             copiedContent = copiedContent.substring(theActualParsedTag.length);
         }
-
         // Finally add the link tag to the html file
         const linkTag = `<link rel="stylesheet" href="${this.codeblockCssPath}">`;
         if (!this.hasCodeblocks || parsedContent.search(linkTag) > -1) {
             // Don't add the link tag if it is there already
-            return parsedContent;
+            return [parsedContent, componentPathsArr];
         }
         // Otherwise add the link tag to the end of head
         const ind = parsedContent.search(/<\/head>/);
