@@ -38,7 +38,7 @@ class FastHighlightCore {
         }
 
         this.codeblockCssPath = args.fhlSettings.css.out;
-        
+
         this.codeblockFormatting = (() => {
             let out = {};
             for (let i = 0; i < DEFAULT_SUPPORTED_FILES.length; ++i) {
@@ -46,8 +46,10 @@ class FastHighlightCore {
             }
             return out;
         })();
-        for (const [key, val] of Object.entries(args.fhlSettings.formatting)) {
-            this.codeblockFormatting[key] = val;
+        if (args.fhlSettings.formatting) {
+            for (const [key, val] of Object.entries(args.fhlSettings.formatting)) {
+                this.codeblockFormatting[key] = val;
+            }
         }
     }
 
@@ -161,6 +163,7 @@ class FastHighlightCore {
                 const lang = splittedFileName[len - 1];
                 return lang;
             })();
+
             // Finally add the content and "move copiedContent pointer"
             parsedContent += formatContentToCodeblock(componentContent, this.codeblockFormatting[lang], LANGUAGES[lang]);
             copiedContent = copiedContent.substring(theActualParsedTag.length);

@@ -28,19 +28,6 @@ module.exports = {
             ],
             fhlSettings: {
                 css: { out: "./css/code-formatter.css" },
-                formatting: {
-                    asd: {
-                        types: new Set([
-                            `my_type`,
-                        ]),
-                        keywords: new Set([
-                            `loop`
-                        ]),
-                        comments: {
-                            singleLine: `$`,
-                        }
-                    }
-                }
             }
         })
     ]

@@ -126,6 +126,9 @@ class Tokens {
         if (lang === undefined) {
             lang = LANGUAGES["js"];
         }
+        if (tokenSets === undefined) {
+            tokenSets = {};
+        }
         for (const set of Object.keys(DEFAULT_TOKENSETS[lang])) {
             this[set].clear();
             if (set == "strings") {

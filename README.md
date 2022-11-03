@@ -37,6 +37,12 @@ FastHighlight can then check the index.html for any codeblocks and replace them 
 
 ## How to
 
+First install the package with
+
+```
+npm install fast-highlight
+```
+
 ### As a webpack plugin
 
 To get started. In your webpack.config.js get the plugin and then initiate it under the "plugins" array
