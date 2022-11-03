@@ -1,7 +1,10 @@
 .fhl-global {
     background-color: #000;
-    font-size: 16px;
     color: #FFF;
+    line-height: 1.2;
+    font-size: 16px;
+    padding-left: 5px;
+    overflow-x: auto;
 }
 
 .fhl-type {
