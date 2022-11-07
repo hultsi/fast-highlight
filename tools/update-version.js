@@ -15,7 +15,9 @@ console.log(`Current version: ${VERSION}`);
 
 // Update package.json
 (async () => {
-    packageJson.scripts.build = packageJson.scripts.build.replaceAll(TARBALL_REGEX, `fast-highlight-${VERSION}.tgz`);
+    for (const [key, val] of Object.entries(packageJson.scripts)) {
+        packageJson.scripts[key] = val.replaceAll(TARBALL_REGEX, `fast-highlight-${VERSION}.tgz`);
+    }
     const outputFile = nodePath.resolve(__dirname, `../package.json`);
     await writeFile(outputFile, JSON.stringify(packageJson, null, `\t`));
     console.log(`Updated --> \t\x1b[32m${outputFile}\x1b[0m`);

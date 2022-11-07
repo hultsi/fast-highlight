@@ -69,7 +69,7 @@ class FastHighlightCore {
             return splittedPath[splittedPath.length - 1] === fileName;
         });
         if (componentPath === undefined) {
-            genericError();
+            return "";
         }
         return componentPath;
     }
@@ -154,18 +154,24 @@ class FastHighlightCore {
             })();
 
             const componentPath = this.getComponentPath(fileName);
-            const componentContent = fs.readFileSync(componentPath, { encoding: "utf-8" });
-            componentPathsArr = [...componentPathsArr, componentPath];
+            if (componentPath === "") {
+                // Component not found
+                console.warn(" - Couldn't find the component", theActualParsedTag)
+                parsedContent += theActualParsedTag;
+            } else {
+                const componentContent = fs.readFileSync(componentPath, { encoding: "utf-8" });
+                componentPathsArr = [...componentPathsArr, componentPath];
 
-            const lang = (() => {
-                const splittedFileName = fileName.split(".");
-                const len = splittedFileName.length;
-                const lang = splittedFileName[len - 1];
-                return lang;
-            })();
+                const lang = (() => {
+                    const splittedFileName = fileName.split(".");
+                    const len = splittedFileName.length;
+                    const lang = splittedFileName[len - 1];
+                    return lang;
+                })();
 
-            // Finally add the content and "move copiedContent pointer"
-            parsedContent += formatContentToCodeblock(componentContent, this.codeblockFormatting[lang], LANGUAGES[lang]);
+                // Finally add the content and "move copiedContent pointer"
+                parsedContent += formatContentToCodeblock(componentContent, this.codeblockFormatting[lang], LANGUAGES[lang]);
+            }
             copiedContent = copiedContent.substring(theActualParsedTag.length);
         }
         // Finally add the link tag to the html file

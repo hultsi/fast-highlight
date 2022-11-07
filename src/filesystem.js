@@ -42,6 +42,11 @@ const findFilesWithExtRecursive = function findFilesWithExtRecursive(dirPath, ex
     if (typeof (dirPath) !== "string" || typeof (ext) !== "string") {
         genericError();
     }
+
+    if (fs.statSync(dirPath).isFile()) {
+        return [dirPath];
+    }
+
     const files = fs.readdirSync(dirPath);
     let arrayOfFiles = [];
     for (let i = 0; i < files.length; ++i) {

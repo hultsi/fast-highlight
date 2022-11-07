@@ -20,7 +20,7 @@ module.exports = {
         new FastHighlightWebpackPlugin({
             predefinedCss: true,
             components: [
-                { in: "." }
+                { in: "./test-src/codeblocks/codeblock.cpp" }
             ],
             sources: [
                 { in: "./test-src/html/index.html", out: "./index.html" },
