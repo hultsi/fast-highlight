@@ -6,15 +6,15 @@ const fs = require("fs");
 const { readFile, writeFile } = require("node:fs/promises");
 const nodePath = require("path");
 
-const packageJson = JSON.parse(fs.readFileSync(nodePath.resolve(__dirname, "../package.json"), { encoding: "utf-8" }));
-
-const VERSION = packageJson.version;
+const VERSION = fs.readFileSync(nodePath.resolve(__dirname, "../VERSION.txt"), { encoding: "utf-8" });
 const TARBALL_REGEX = new RegExp(`fast-highlight-[0-9]{1,2}[.][0-9]{1,2}[.][0-9]{1,2}[.]tgz`, "g");
 
 console.log(`Current version: ${VERSION}`);
 
 // Update package.json
 (async () => {
+    const packageJson = JSON.parse(fs.readFileSync(nodePath.resolve(__dirname, "../package.json"), { encoding: "utf-8" }));
+    packageJson.version = packageJson.version.replaceAll(TARBALL_REGEX, `fast-highlight-${VERSION}.tgz`);
     for (const [key, val] of Object.entries(packageJson.scripts)) {
         packageJson.scripts[key] = val.replaceAll(TARBALL_REGEX, `fast-highlight-${VERSION}.tgz`);
     }
