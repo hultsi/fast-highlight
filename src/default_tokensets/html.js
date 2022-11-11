@@ -1,6 +1,8 @@
 module.exports = {
     types: new Set([
-        `html`, `span`, `div`, `DOCTYPE`,
+        `html`, `head`, `body`, `span`,
+        `div`, `DOCTYPE`, `ul`, `ol`, `li`,
+        `br`,
     ]),
     keywords: new Set([
 
@@ -15,7 +17,7 @@ module.exports = {
         `<`, `>`
     ]),
     classes: new Set([
-        `class`, `id`
+        `class`, `id`, `lang`,
     ]),
     strings: {
         singleLine: [`"`, `'`],

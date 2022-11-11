@@ -3,10 +3,11 @@ module.exports = {
 
     ]),
     keywords: new Set([
-        `body`, `html`, `div`, `span`
+        `html`, `head`, `body`, `span`,
+        `div`, `ul`, `ol`, `li`,
     ]),
     basicOperators: new Set([
-
+        `;`, `:`,
     ]),
     comparisonOperators: new Set([
 
@@ -15,7 +16,7 @@ module.exports = {
         `(`, `)`, `{`, `}`,
     ]),
     classes: new Set([
-        `class`, `id`
+
     ]),
     strings: {
         singleLine: [`"`, `'`],

@@ -1,4 +1,5 @@
 const { FastHighlight } = require("fast-highlight")
+// const { FastHighlight } = require("../src/FastHighlight.js");
 
 new FastHighlight({
     predefinedCss: true,

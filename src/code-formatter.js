@@ -78,14 +78,15 @@ const tokenize = function tokenize(cmd) {
                 } else if (cmd.substring(i, i + len) === TOKENS.commentHolder.singleLine ||
                     cmd.substring(i, i + len) === TOKENS.commentHolder.multiLineStart) {
                     const isSingleLine = TOKENS.commentHolder.singleLine === token;
+                    const multiLineEndLen = TOKENS.commentHolder.multiLineEnd.length;
                     while (true) {
                         tokenArr[pos].value += cmd[i];
                         ++i;
                         if (cmd[i] === LINE_BREAK && isSingleLine) {
                             --i;
                             break;
-                        } else if (cmd.substring(i, i + len) === TOKENS.commentHolder.multiLineEnd && !isSingleLine) {
-                            tokenArr[pos].value += cmd.substring(i, i + len);
+                        } else if (cmd.substring(i, i + multiLineEndLen) === TOKENS.commentHolder.multiLineEnd && !isSingleLine) {
+                            tokenArr[pos].value += cmd.substring(i, i + multiLineEndLen);
                             ++i;
                             break;
                         }
