@@ -14,7 +14,7 @@ console.log(`Current version: ${VERSION}`);
 // Update package.json
 (async () => {
     const packageJson = JSON.parse(fs.readFileSync(nodePath.resolve(__dirname, "../package.json"), { encoding: "utf-8" }));
-    packageJson.version = packageJson.version.replaceAll(TARBALL_REGEX, `fast-highlight-${VERSION}.tgz`);
+    packageJson.version = `${VERSION}`;
     for (const [key, val] of Object.entries(packageJson.scripts)) {
         packageJson.scripts[key] = val.replaceAll(TARBALL_REGEX, `fast-highlight-${VERSION}.tgz`);
     }

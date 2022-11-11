@@ -1,6 +1,6 @@
 {
 	"name": "fast-highlight",
-	"version": "0.0.32",
+	"version": "0.0.33",
 	"main": "./src/FastHighlight.js",
 	"author": "Hultsi",
 	"description": "Allows easy code highlight & styling to .html files",
