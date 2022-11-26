@@ -5,6 +5,7 @@ const pythonTokens = require("./default_tokensets/python.js");
 const cSharpTokens = require("./default_tokensets/c-sharp.js");
 const htmlTokens = require("./default_tokensets/html.js");
 const cssTokens = require("./default_tokensets/css.js");
+const cmakeTokens = require("./default_tokensets/cmake.js");
 
 const DEFAULT_SUPPORTED_FILES = [
     "js",
@@ -16,6 +17,7 @@ const DEFAULT_SUPPORTED_FILES = [
     "cs",
     "html",
     "css",
+    "cmake",
 ];
 
 const LANGUAGES = new Enum().erate(DEFAULT_SUPPORTED_FILES);
@@ -35,6 +37,7 @@ const DEFAULT_TOKENSETS = (() => {
     defaults[LANGUAGES["cs"]] = cSharpTokens;
     defaults[LANGUAGES["html"]] = htmlTokens;
     defaults[LANGUAGES["css"]] = cssTokens;
+    defaults[LANGUAGES["cmake"]] = cmakeTokens;
     return defaults;
 })();
 

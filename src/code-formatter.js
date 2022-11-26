@@ -226,8 +226,8 @@ const addDescriptors = function addDescriptors(tokenValues, lang) {
     return tokenValues;
 }
 
-const formatContent = function formatContent(tokens) {
-    let formattedContent = `<pre class="fhl-global"><code>\n`; // Open pre-code
+const formatContent = function formatContent(tokens, lang = ``) {
+    let formattedContent = `<pre class="fhl-global fhl-global-${lang}"><code class="fhl-code fhl-code-${lang}">\n`; // Open pre-code
     // Add styled span around tokens
     for (let i = 0; i < tokens.length; ++i) {
         formattedContent += `${tokens[i].prefix}`;
@@ -290,14 +290,14 @@ const createSpanOpenTag = function createSpanOpenTag(descriptors) {
 }
 
 const formatContentToCodeblock = function formatContentToCodeblock(content, tokenSets, lang) {
-    TOKENS.resetTokens(tokenSets, lang);
+    TOKENS.resetTokens(tokenSets, LANGUAGES[lang]);
 
     const tokens = (() => {
         const tokenValues = tokenize(content);
-        return addDescriptors(tokenValues, lang);
+        return addDescriptors(tokenValues, LANGUAGES[lang]);
     })();
 
-    return `${formatContent(tokens)}`;
+    return `${formatContent(tokens, lang)}`;
 }
 
 module.exports = {

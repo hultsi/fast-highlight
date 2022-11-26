@@ -1,7 +1,7 @@
 const fs = require("fs");
 const nodePath = require("path");
 const { formatContentToCodeblock } = require("./code-formatter.js");
-const { DEFAULT_SUPPORTED_FILES, LANGUAGES } = require("./Tokens.js");
+const { DEFAULT_SUPPORTED_FILES } = require("./Tokens.js");
 const {
     genericError,
     relativeToAbsolutePath,
@@ -170,7 +170,7 @@ class FastHighlightCore {
                 })();
 
                 // Finally add the content and "move copiedContent pointer"
-                parsedContent += formatContentToCodeblock(componentContent, this.codeblockFormatting[lang], LANGUAGES[lang]);
+                parsedContent += formatContentToCodeblock(componentContent, this.codeblockFormatting[lang], lang);
             }
             copiedContent = copiedContent.substring(theActualParsedTag.length);
         }

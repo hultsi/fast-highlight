@@ -1,5 +1,6 @@
 const path = require('path');
-const { FastHighlightWebpackPlugin } = require("fast-highlight")
+// const { FastHighlightWebpackPlugin } = require("fast-highlight")
+const { FastHighlightWebpackPlugin } = require("../src/FastHighlight.js");
 
 module.exports = {
     mode: "development",
