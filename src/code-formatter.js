@@ -96,6 +96,14 @@ const tokenize = function tokenize(cmd) {
                         // types and keywords require a space after a _non_ token
                         continue;
                     }
+                    if (!(TOKENS.basicOperators.has(cmd[i + len]) ||
+                        TOKENS.comparisonOperators.has(cmd[i + len]) ||
+                        TOKENS.brackets.has(cmd[i + len]) ||
+                        cmd[i + len] !== SPACE ||
+                        cmd[i + len] !== '\n' ||
+                        cmd[i + len] !== '\t')) {
+                        continue;
+                    }
                     if (token === SPACE) {
                         tokenArr[pos].prefix += SPACE;
                         prevWasToken = true;
