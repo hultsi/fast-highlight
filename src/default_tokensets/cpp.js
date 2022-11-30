@@ -5,7 +5,8 @@ module.exports = {
         `mutable`, `static_cast`, `reinterpret_cast`, `const_cast`,
         `dynamic_cast`, `typeof`, `sizeof`, `enum`, `void`,
         `true`, `false`, `union`, `this`, `class`, `namespace`,
-        `bool`,
+        `bool`, `unsigned`, `public`, `private`, `protected`,
+        `inline`,
     ]),
     keywords: new Set([
         `for`, `while`, `return`, `do`, `using`,
@@ -31,7 +32,10 @@ module.exports = {
     classes: new Set([
         `vector`, `array`, `string`,
         `int8_t`, `int16_t`, `int32_t`,
-        `uint8_t`, `uint16_t`, `uint32_t`
+        `uint8_t`, `uint16_t`, `uint32_t`,
+        `random_device`, `uniform_real_distribution`,
+        `mt19937`, `uniform_int_distribution`, `ifstream`,
+        `ofstream`,
     ]),
     strings: {
         singleLine: [`"`, `'`],

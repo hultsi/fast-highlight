@@ -241,6 +241,10 @@ fhlSettings: {
 You can create a css file that looks like the following and change the styling to match your liking. Then instead of using the predefined css, in the settings object of FastHighlight, you can copy your css files with FastHighlight to whichever folder you want.
 
 ```css
+/*
+    The <pre> tag will also have a class named fhl-global-{file-extension}.
+    E.g., for .cpp files .fhl-global-cpp
+*/
 .fhl-global {
     background-color: #000;
     color: #FFF;
@@ -248,6 +252,14 @@ You can create a css file that looks like the following and change the styling t
     font-size: 16px;
     padding-left: 5px;
     overflow-x: auto;
+}
+
+/*
+    The <code> tag will also have a class named fhl-code-{file-extension}.
+    E.g., for .cpp files .fhl-code-cpp
+*/
+.fhl-code {
+    
 }
 
 .fhl-type {
