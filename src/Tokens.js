@@ -172,11 +172,13 @@ class Tokens {
     }
 }
 
+const TOKENS = new Tokens();
+
 module.exports = {
     DEFAULT_SUPPORTED_FILES,
     LANGUAGES,
     SPACE,
     TAB,
     LINE_BREAK,
-    Tokens,
+    TOKENS,
 };

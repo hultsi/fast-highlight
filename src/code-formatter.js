@@ -1,36 +1,18 @@
-const Enum = require("./Enum.js");
 const {
     SPACE,
     LINE_BREAK,
-    Tokens,
+    TOKENS,
     LANGUAGES,
 } = require("./Tokens.js");
+const DESCRIPTORS = require("./descriptor-handlers/descriptors.js");
+const descriptorParsers = require("./descriptor-handlers/descriptor-handlers.js");
 
-const TOKENS = new Tokens();
-
-const DESCRIPTORS = new Enum().erate([
-    "__UNDEF__",
-    "NUMBER",
-    "VARIABLE",
-    "FUNCTION",
-    "CLASS",
-    "OPERATOR",
-    "TYPE",
-    "STRING",
-    "COMMA",
-    "BRACKET",
-    "CURLY_BRACKET",
-    "SQUARE_BRACKET",
-    "COMMENT",
-    "SINGLE_LINE_COMMENT",
-    "MULTI_LINE_COMMENT",
-    "KEYWORD",
-    "RETURN",
-    "LINE_BREAK",
-    "SEMICOLON",
-    "NULL",
-    "UNDEFINED",
-]);
+const isChar = function isChar(c) {
+    if (c.length > 1)
+        return false;
+    return (c[0].charCodeAt(0) >= 65 && c[0].charCodeAt(0) <= 90) ||
+        (c[0].charCodeAt(0) >= 97 && c[0].charCodeAt(0) <= 122);
+}
 
 /**
  * Takes in string and tokenizes it to an array based on 'OPERATORS'.
@@ -96,14 +78,11 @@ const tokenize = function tokenize(cmd) {
                         // types and keywords require a space after a _non_ token
                         continue;
                     }
-                    if (!(TOKENS.basicOperators.has(cmd[i + len]) ||
-                        TOKENS.comparisonOperators.has(cmd[i + len]) ||
-                        TOKENS.brackets.has(cmd[i + len]) ||
-                        cmd[i + len] !== SPACE ||
-                        cmd[i + len] !== '\n' ||
-                        cmd[i + len] !== '\t')) {
+
+                    if (isChar(cmd[i]) && isChar(cmd[i + 1])) {
                         continue;
                     }
+
                     if (token === SPACE) {
                         tokenArr[pos].prefix += SPACE;
                         prevWasToken = true;
@@ -144,94 +123,15 @@ const tokenize = function tokenize(cmd) {
 }
 
 const addDescriptors = function addDescriptors(tokenValues, lang) {
-    // Todo: this should be cleaned up somehow
-    const len = tokenValues.length;
-    let prevWasVariable = false;
-    for (let i = 0; i < len; ++i) {
-        const token = tokenValues[i].value;
-        if (TOKENS.types.has(token)) {
-            tokenValues[i].descriptor.add(DESCRIPTORS["TYPE"]);
-            if (i > 0 && tokenValues[i - 1].value === "=") {
-                if (tokenValues[i - 2].descriptor.has(DESCRIPTORS["VARIABLE"])) {
-                    tokenValues[i - 2].descriptor.add(DESCRIPTORS["FUNCTION"]);
-                }
-            }
-        } else if (TOKENS.keywords.has(token)) {
-            tokenValues[i].descriptor.add(DESCRIPTORS["KEYWORD"]);
-        } else if (TOKENS.basicOperators.has(token)) {
-            tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
-            if (lang === LANGUAGES["cpp"] || lang === LANGUAGES["hpp"] ||
-                lang === LANGUAGES["c"] || lang === LANGUAGES["h"]) {
-                if (token === `::`) {
-                    // C/C++ specific condition
-                    tokenValues[i - 1].descriptor.add(DESCRIPTORS["CLASS"]);
-                }
-            }
-        } else if (TOKENS.comparisonOperators.has(token)) {
-            tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
-            if (lang === LANGUAGES["cpp"] || lang === LANGUAGES["hpp"] ||
-                lang === LANGUAGES["c"] || lang === LANGUAGES["h"]) {
-                if (token !== `>` && i <= 2) continue;
-                // C/C++ specific condition for #includes
-                if ((tokenValues[i - 1].descriptor.has(DESCRIPTORS["VARIABLE"]) ||
-                    tokenValues[i - 1].descriptor.has(DESCRIPTORS["CLASS"])) &&
-                    tokenValues[i - 2].value === `<` &&
-                    tokenValues[i - 3].value === `#include`) {
-                    // And finally...
-                    tokenValues[i].descriptor.add(DESCRIPTORS["STRING"]);
-                    tokenValues[i - 1].descriptor.add(DESCRIPTORS["STRING"]);
-                    tokenValues[i - 2].descriptor.add(DESCRIPTORS["STRING"]);
-                }
-            }
-        } else if (TOKENS.brackets.has(token)) {
-            tokenValues[i].descriptor.add(DESCRIPTORS["BRACKET"]);
-            if (prevWasVariable && token === "(") {
-                tokenValues[i - 1].descriptor.add(DESCRIPTORS["FUNCTION"]);
-            }
-        } else if (TOKENS.classes.has(token)) {
-            tokenValues[i].descriptor.add(DESCRIPTORS["CLASS"]);
-        } else if (TOKENS.others.has(token)) {
-            tokenValues[i].descriptor.add(DESCRIPTORS["__UNDEF__"]);
-        } else {
-            // String?
-            const isString = TOKENS.strings.has(token[0]);
-            if (isString) {
-                tokenValues[i].descriptor.add(DESCRIPTORS["STRING"]);
-                continue;
-            }
-
-            // Comment?
-            const isComment = (() => {
-                for (const commentToken of TOKENS.comments) {
-                    const len = commentToken.length;
-                    if (len > 0 && token.substring(0, len) === commentToken) {
-                        return true;
-                    }
-                }
-                return false;
-            })();
-            if (isComment) {
-                tokenValues[i].descriptor.add(DESCRIPTORS["COMMENT"]);
-                continue;
-            }
-
-            // Variable or number?
-            const num = Number(token[0]);
-            if (Number.isNaN(num)) {
-                if (i > 0 && (tokenValues[i - 1].value === "class" || tokenValues[i - 1].value === "namespace")) {
-                    tokenValues[i].descriptor.add(DESCRIPTORS["CLASS"]);
-                    continue;
-                }
-                tokenValues[i].descriptor.add(DESCRIPTORS["VARIABLE"]);
-                prevWasVariable = true;
-                continue;
-            } else {
-                tokenValues[i].descriptor.add(DESCRIPTORS["NUMBER"]);
-            }
-        }
-        prevWasVariable = false;
+    switch (lang) {
+        case LANGUAGES["cpp"]:
+        case LANGUAGES["hpp"]:
+        case LANGUAGES["c"]:
+        case LANGUAGES["h"]:
+            return descriptorParsers.addCppDescriptors(tokenValues);
+        default:
+            return descriptorParsers.addDefaultDescriptors(tokenValues, lang);
     }
-    return tokenValues;
 }
 
 const formatContent = function formatContent(tokens, lang = ``) {
