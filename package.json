@@ -1,6 +1,6 @@
 {
 	"name": "fast-highlight",
-	"version": "0.0.35",
+	"version": "0.0.36",
 	"main": "./src/FastHighlight.js",
 	"author": "Hultsi",
 	"description": "Allows easy code highlight & styling to .html files",
@@ -11,9 +11,9 @@
 	],
 	"scripts": {
 		"update-version": "node ./tools/update-version.js",
-		"build": "npm pack && cd tests && npm install ../fast-highlight-0.0.35.tgz",
+		"build": "npm pack && cd tests && npm install ../fast-highlight-0.0.36.tgz",
 		"build-sh": "./tools/build.sh",
-		"build-and-run": "npm pack && cd tests && npm install ../fast-highlight-0.0.35.tgz && node fast-highlight.js && git restore package-lock.json && cd .. && del fast-highlight-0.0.35.tgz"
+		"build-and-run": "npm pack && cd tests && npm install ../fast-highlight-0.0.36.tgz && node fast-highlight.js && git restore package-lock.json && cd .. && del fast-highlight-0.0.36.tgz"
 	},
 	"repository": {
 		"type": "git",

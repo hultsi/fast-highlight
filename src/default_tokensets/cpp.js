@@ -6,7 +6,7 @@ module.exports = {
         `dynamic_cast`, `typeof`, `sizeof`, `enum`, `void`,
         `true`, `false`, `union`, `this`, `class`, `namespace`,
         `bool`, `unsigned`, `public`, `private`, `protected`,
-        `inline`,
+        `inline`, `struct`, `template`, `typename`,
     ]),
     keywords: new Set([
         `for`, `while`, `return`, `do`, `using`,

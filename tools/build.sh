@@ -1,11 +1,11 @@
 #!/bin/bash
 echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
-echo \#\#  Building fast-highlight-0.0.35.tgz \#\#
+echo \#\#  Building fast-highlight-0.0.36.tgz \#\#
 echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
 echo 
 npm pack
 cd tests
-npm install ../fast-highlight-0.0.35.tgz
+npm install ../fast-highlight-0.0.36.tgz
 
 echo 
 echo \#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#
