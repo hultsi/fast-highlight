@@ -7,7 +7,32 @@
     overflow-x: auto;
 }
 
-.fhl-code {}
+.fhl-code {
+    counter-reset: line-number;
+}
+
+.fhl-code-line {
+    display: inline-block;
+    width: 100%;
+}
+
+.fhl-code-line:before {
+    display: inline-block;
+    counter-increment: line-number;
+    content: counter(line-number);
+    color: #FFF;
+    opacity: 50%;
+    padding-right: .5em;
+    margin-right: .5em;
+    width: 1.7em;
+    text-align: right;
+    border-right: solid 2px #FFF;
+}
+
+.fhl-code-line:hover {
+    background-color: #e984e11e;
+    opacity: 100%;
+}
 
 .fhl-type {
     color: #3C79D1;
