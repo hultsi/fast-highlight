@@ -139,14 +139,24 @@ const addDescriptors = function addDescriptors(tokenValues, lang) {
 const formatContent = function formatContent(tokens, lang = ``) {
     let formattedContent = `<pre class="fhl-global fhl-global-${lang}"><code class="fhl-code fhl-code-${lang}">\n`; // Open pre-code
     // Add styled span around tokens
+    formattedContent += `<span class="fhl-code-line">`;
     for (let i = 0; i < tokens.length; ++i) {
+        if (tokens[i].value === "\n") {
+            formattedContent += `</span>`;
+        }
+        
         formattedContent += `${tokens[i].prefix}`;
 
         formattedContent += createSpanOpenTag(tokens[i].descriptor);
 
         formattedContent += `${tokens[i].value}`;
         formattedContent += `</span>`;
+
+        if (tokens[i].value === "\n") {
+            formattedContent += `<span class="fhl-code-line">`;
+        }
     }
+    formattedContent += `</span>`;
     formattedContent += `\n</code>\n</pre>`; // close pre-code
 
     const emptyClassesRemoved = formattedContent.replaceAll(/\s{0,1}?class=""/g, ``);
