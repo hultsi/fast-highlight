@@ -3,48 +3,31 @@ const {
 } = require("../Tokens.js");
 const DESCRIPTORS = require("./descriptors.js");
 
-const addCppDescriptors = function addCppDescriptors(tokenValues) {
-    /**
-     * TODO: userDefinedClasses probably should be map instead since
-     * for completeness the scope of the class/struct/namespace
-     * should be known as well. For now this is fine.
-     */
-    const userDefinedClasses = new Set();
-    const len = tokenValues.length;
+const addCmakeDescriptors = function addCmakeDescriptors(tokenValues) {
     let prevWasVariable = false;
-    for (let i = 0; i < len; ++i) {
+    for (let i = 0; i < tokenValues.length; ++i) {
         const token = tokenValues[i].value;
+
         if (TOKENS.types.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["TYPE"]);
+            if (i > 0 && tokenValues[i - 1].value === "=") {
+                if (tokenValues[i - 2].descriptor.has(DESCRIPTORS["VARIABLE"])) {
+                    tokenValues[i - 2].descriptor.add(DESCRIPTORS["FUNCTION"]);
+                }
+            }
         } else if (TOKENS.keywords.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["KEYWORD"]);
         } else if (TOKENS.basicOperators.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
-
-            if (token === `::`) {
-                // C/C++ specific condition
-                tokenValues[i - 1].descriptor.add(DESCRIPTORS["CLASS"]);
-            }
         } else if (TOKENS.comparisonOperators.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
-            if (token !== `>` && i <= 2) continue;
-            // C/C++ specific condition for #includes
-            if ((tokenValues[i - 1].descriptor.has(DESCRIPTORS["VARIABLE"]) ||
-                tokenValues[i - 1].descriptor.has(DESCRIPTORS["CLASS"])) &&
-                tokenValues[i - 2].value === `<` &&
-                tokenValues[i - 3].value === `#include`) {
-                // And finally...
-                tokenValues[i].descriptor.add(DESCRIPTORS["STRING"]);
-                tokenValues[i - 1].descriptor.add(DESCRIPTORS["STRING"]);
-                tokenValues[i - 2].descriptor.add(DESCRIPTORS["STRING"]);
-            }
         } else if (TOKENS.brackets.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["BRACKET"]);
             if (prevWasVariable && token === "(") {
                 tokenValues[i - 1].descriptor.clear();
                 tokenValues[i - 1].descriptor.add(DESCRIPTORS["FUNCTION"]);
             }
-        } else if (TOKENS.classes.has(token) || userDefinedClasses.has(token)) {
+        } else if (TOKENS.classes.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["CLASS"]);
         } else if (TOKENS.others.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["__UNDEF__"]);
@@ -74,12 +57,12 @@ const addCppDescriptors = function addCppDescriptors(tokenValues) {
             // Variable or number?
             const num = Number(token[0]);
             if (Number.isNaN(num)) {
-                if (i > 0 && (tokenValues[i - 1].value === "class" || tokenValues[i - 1].value === "namespace" || tokenValues[i - 1].value === "struct")) {
-                    tokenValues[i].descriptor.add(DESCRIPTORS["CLASS"]);
-                    userDefinedClasses.add(tokenValues[i].value);
-                    continue;
+                if (token.substring(0, "CMAKE_".length).toUpperCase() === "CMAKE_" ||
+                    token.substring(0, "PROJECT_".length).toUpperCase() === "PROJECT_") {
+                    tokenValues[i].descriptor.add(DESCRIPTORS["VARIABLE"]);
+                } else {
+                    tokenValues[i].descriptor.add(DESCRIPTORS["OPERATOR"]);
                 }
-                tokenValues[i].descriptor.add(DESCRIPTORS["VARIABLE"]);
                 prevWasVariable = true;
                 continue;
             } else {
@@ -88,7 +71,23 @@ const addCppDescriptors = function addCppDescriptors(tokenValues) {
         }
         prevWasVariable = false;
     }
+
+    for (let i = 0; i < tokenValues.length; ++i) {
+        const token = tokenValues[i].value;
+        for (const item of TOKENS.styleOverrides.values()) {
+            if (item.token === token) {
+                tokenValues[i].descriptor.clear();
+                tokenValues[i].descriptor.add(DESCRIPTORS[item.style.toUpperCase()]);
+            }
+
+            if (tokenValues[i].descriptor.has(DESCRIPTORS[item.descriptor])) {
+                tokenValues[i].descriptor.clear();
+                tokenValues[i].descriptor.add(DESCRIPTORS[item.style.toUpperCase()]);
+            }
+        }
+    }
+
     return tokenValues;
 }
 
-module.exports = addCppDescriptors;
+module.exports = addCmakeDescriptors

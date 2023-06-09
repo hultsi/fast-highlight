@@ -1,9 +1,9 @@
 module.exports = {
     types: new Set([
-
+        `$`, `True`, `False`, `true`, `false`
     ]),
     keywords: new Set([
-
+        `if`, `endif`, `elseif`, `else`,
     ]),
     basicOperators: new Set([
 
@@ -13,11 +13,11 @@ module.exports = {
         `<=`,
     ]),
     brackets: new Set([
-        `(`, `)`, `{`,
-        `}`, `[`, `]`,
+        `{`, `}`,`(`, `)`, `[`, `]`,
     ]),
     classes: new Set([
-
+        `VERSION`, `DESCRIPTION`, `PUBLIC`, `PRIVATE`, `INTERFACE`,
+        `version`, `description`, `public`, `private`, `interface`,
     ]),
     strings: {
         singleLine: [],
@@ -26,5 +26,9 @@ module.exports = {
         singleLine: `#`,
         multiLineStart: ``,
         multiLineEnd: ``,
-    }
+    },
+    styleOverrides: new Set([
+        { token: `{`, style: "KEYWORD" },
+        { token: `}`, style: "KEYWORD" },
+    ])
 };

@@ -70,6 +70,8 @@ class Tokens {
         this.others = new Set([
             SPACE, TAB, LINE_BREAK,
         ]);
+        this.styleOverrides = new Set([]);
+
         this.tokens = new Set([
             ...this.types,
             ...this.keywords,
@@ -80,6 +82,7 @@ class Tokens {
             ...this.comments,
             ...this.others,
             ...this.classes,
+            ...this.styleOverrides,
         ]);
     }
 
@@ -168,6 +171,7 @@ class Tokens {
             ...this.strings,
             ...this.comments,
             ...this.others,
+            ...this.styleOverrides,
         ]);
     }
 }

@@ -166,6 +166,11 @@ class FastHighlightCore {
                     const splittedFileName = fileName.split(".");
                     const len = splittedFileName.length;
                     const lang = splittedFileName[len - 1];
+                    if (lang === "txt") {
+                        if (splittedFileName[0] === "CMakeLists") {
+                            return "cmake";
+                        }
+                    }
                     return lang;
                 })();
 
