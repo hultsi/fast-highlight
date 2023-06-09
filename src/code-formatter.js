@@ -129,6 +129,8 @@ const addDescriptors = function addDescriptors(tokenValues, lang) {
         case LANGUAGES["c"]:
         case LANGUAGES["h"]:
             return descriptorParsers.addCppDescriptors(tokenValues);
+        case LANGUAGES["cmake"]:
+            return descriptorParsers.addCmakeDescriptors(tokenValues); // TODO:
         default:
             return descriptorParsers.addDefaultDescriptors(tokenValues, lang);
     }
@@ -204,7 +206,7 @@ const formatContentToCodeblock = function formatContentToCodeblock(content, toke
         const tokenValues = tokenize(content);
         return addDescriptors(tokenValues, LANGUAGES[lang]);
     })();
-
+    
     return `${formatContent(tokens, lang)}`;
 }
 

@@ -24,6 +24,7 @@ const addDefaultDescriptors = function addDefaultDescriptors(tokenValues, lang) 
         } else if (TOKENS.brackets.has(token)) {
             tokenValues[i].descriptor.add(DESCRIPTORS["BRACKET"]);
             if (prevWasVariable && token === "(") {
+                tokenValues[i - 1].descriptor.clear();
                 tokenValues[i - 1].descriptor.add(DESCRIPTORS["FUNCTION"]);
             }
         } else if (TOKENS.classes.has(token)) {
