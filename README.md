@@ -49,7 +49,7 @@ To get started. In your webpack.config.js get the plugin and then initiate it un
 
 **The simplest approach**
 ```js
-const { FastHighlightWebpackPlugin } = require("FastHighlight")
+const { FastHighlightWebpackPlugin } = require("fast-highlight")
 { 
     // webpack struct starts here...
     plugins: [
@@ -75,7 +75,7 @@ const { FastHighlightWebpackPlugin } = require("FastHighlight")
 **A bit more thorough approach**
 
 ```js
-const { FastHighlightWebpackPlugin } = require("FastHighlight")
+const { FastHighlightWebpackPlugin } = require("fast-highlight")
 { 
     // webpack struct starts here...
 
@@ -144,7 +144,7 @@ const { FastHighlightWebpackPlugin } = require("FastHighlight")
 Standalone usage differs only slightly. First create a js file and define the options like below.
 
 ```js
-const { FastHighlight } = require("FastHighlight")
+const { FastHighlight } = require("fast-highlight")
 
 // Create the class
 new FastHighlight({
@@ -259,7 +259,30 @@ You can create a css file that looks like the following and change the styling t
     E.g., for .cpp files .fhl-code-cpp
 */
 .fhl-code {
-    
+    counter-reset: line-number;
+}
+
+.fhl-code-line {
+    display: inline-block;
+    width: 100%;
+}
+
+.fhl-code-line:before {
+    display: inline-block;
+    counter-increment: line-number;
+    content: counter(line-number);
+    color: #FFF;
+    opacity: 50%;
+    padding-right: .5em;
+    margin-right: .5em;
+    width: 1.7em;
+    text-align: right;
+    border-right: solid 2px #FFF;
+}
+
+.fhl-code-line:hover {
+    background-color: #e984e11e;
+    opacity: 100%;
 }
 
 .fhl-type {

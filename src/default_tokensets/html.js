@@ -2,7 +2,7 @@ module.exports = {
     types: new Set([
         `html`, `head`, `body`, `span`,
         `div`, `DOCTYPE`, `ul`, `ol`, `li`,
-        `br`,
+        `br`, `pre`, `code`,
     ]),
     keywords: new Set([
 

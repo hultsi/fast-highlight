@@ -13,7 +13,7 @@
 		"update-version": "node ./tools/update-version.js",
 		"build": "npm pack && cd tests && npm install ../fast-highlight-0.0.37.tgz",
 		"build-sh": "./tools/build.sh",
-		"build-and-run": "npm pack && cd tests && npm install ../fast-highlight-0.0.37.tgz && node fast-highlight.js && git restore package-lock.json && cd .. && del fast-highlight-0.0.37.tgz"
+		"build-and-run": "npm pack && cd tests && npm install ../fast-highlight-0.0.37.tgz && node fast-highlight.js && git restore package-lock.json && cd .. && rm fast-highlight-0.0.37.tgz"
 	},
 	"repository": {
 		"type": "git",
