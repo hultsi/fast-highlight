@@ -3,7 +3,6 @@ const nodePath = require("path");
 const { formatContentToCodeblock } = require("./code-formatter.js");
 const { DEFAULT_SUPPORTED_FILES } = require("./Tokens.js");
 const {
-    genericError,
     relativeToAbsolutePath,
     findFilesWithExtRecursive,
 } = require("./filesystem.js");
@@ -14,6 +13,7 @@ class FastHighlightCore {
         this.beingWatched = [];
         this.hasCodeblocks = false;
         this.predefinedCss = (args.predefinedCss !== undefined ? args.predefinedCss : true);
+        this.includeFileName = (args.includeFileName !== undefined ? args.includeFileName : true);
 
         const componentPaths = (() => {
             const paths = new Array(args.components.length);
@@ -179,7 +179,12 @@ class FastHighlightCore {
                 })();
 
                 // Finally add the content and "move copiedContent pointer"
-                parsedContent += formatContentToCodeblock(componentContent, this.codeblockFormatting[lang], lang);
+                const settings = {
+                    lang: lang,
+                    fileName: fileName,
+                    includeFileName: this.includeFileName,
+                };
+                parsedContent += formatContentToCodeblock(componentContent, this.codeblockFormatting[lang], settings);
             }
             copiedContent = copiedContent.substring(theActualParsedTag.length);
         }

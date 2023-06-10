@@ -19,6 +19,7 @@ module.exports = {
 
     plugins: [
         new FastHighlightWebpackPlugin({
+            includeFileName: true,
             predefinedCss: true,
             components: [
                 { in: "./test-src/codeblocks" }
