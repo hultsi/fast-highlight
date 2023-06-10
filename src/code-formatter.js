@@ -7,6 +7,12 @@ const {
 const DESCRIPTORS = require("./descriptor-handlers/descriptors.js");
 const descriptorParsers = require("./descriptor-handlers/descriptor-handlers.js");
 
+const DEFAULT_SETTINGS = {
+    lang: LANGUAGES["js"],
+    fileName: ``,
+    includeFileName: true,
+};
+
 const isChar = function isChar(c) {
     if (c.length > 1)
         return false;
@@ -158,8 +164,15 @@ const addDescriptors = function addDescriptors(tokenValues, lang) {
     return tokens;
 }
 
-const formatContent = function formatContent(tokens, lang = ``) {
-    let formattedContent = `<pre class="fhl-global fhl-global-${lang}"><code class="fhl-code fhl-code-${lang}">\n`; // Open pre-code
+const formatContent = function formatContent(tokens, settings = DEFAULT_SETTINGS) {
+    let formattedContent = ``;
+
+    if (settings.includeFileName) {
+        formattedContent += `<div class="fhl-code-container">`; // open fhl-code-container
+        formattedContent += `<code class="fhl-file-name">${settings.fileName}</code>`;
+    }
+    formattedContent += `<pre class="fhl-global fhl-global-${settings.lang}"><code class="fhl-code fhl-code-${settings.lang}">\n`; // Open pre-code
+
     // Add styled span around tokens
     formattedContent += `<span class="fhl-code-line">`;
     for (let i = 0; i < tokens.length; ++i) {
@@ -180,6 +193,10 @@ const formatContent = function formatContent(tokens, lang = ``) {
     }
     formattedContent += `</span>`;
     formattedContent += `\n</code>\n</pre>`; // close pre-code
+
+    if (settings.includeFileName) {
+        formattedContent += `</div>`; // close fhl-code-container
+    }
 
     const emptyClassesRemoved = formattedContent.replaceAll(/\s{0,1}?class=""/g, ``);
     const onlySpacesSpansRemoved = emptyClassesRemoved.replaceAll(/(<span>)(\s{0,}?)(<\/span>)/g, `$2`);
@@ -231,15 +248,15 @@ const createSpanOpenTag = function createSpanOpenTag(descriptors) {
     return `${content}">`; // Close span
 }
 
-const formatContentToCodeblock = function formatContentToCodeblock(content, tokenSets, lang) {
-    TOKENS.resetTokens(tokenSets, LANGUAGES[lang]);
+const formatContentToCodeblock = function formatContentToCodeblock(content, tokenSets, settings = DEFAULT_SETTINGS) {
+    TOKENS.resetTokens(tokenSets, LANGUAGES[settings.lang]);
 
     const tokens = (() => {
         const tokenValues = tokenize(content);
-        return addDescriptors(tokenValues, LANGUAGES[lang]);
+        return addDescriptors(tokenValues, LANGUAGES[settings.lang]);
     })();
     
-    return `${formatContent(tokens, lang)}`;
+    return `${formatContent(tokens, settings)}`;
 }
 
 module.exports = {
