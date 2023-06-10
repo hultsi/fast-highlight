@@ -44,8 +44,8 @@ const tokenize = function tokenize(cmd) {
         for (let len = MAX_TOKEN_LENGTH; len > 0; --len) {
             const token = cmd.substring(i, i + len);
             if (TOKENS.tokens.has(token)) {
-                // Can't use "token" variable for comment parsing
                 if (TOKENS.strings.has(cmd.substring(i, i + len))) {
+                    // Parse string
                     const isSingleLine = TOKENS.stringHolder.singleLine.some(el => el === token);
                     while (true) {
                         tokenArr[pos].value += cmd[i];
@@ -59,17 +59,18 @@ const tokenize = function tokenize(cmd) {
                     }
                 } else if (cmd.substring(i, i + len) === TOKENS.commentHolder.singleLine ||
                     cmd.substring(i, i + len) === TOKENS.commentHolder.multiLineStart) {
+                    // Parse comment
                     const isSingleLine = TOKENS.commentHolder.singleLine === token;
                     const multiLineEndLen = TOKENS.commentHolder.multiLineEnd.length;
                     while (true) {
                         tokenArr[pos].value += cmd[i];
                         ++i;
                         if (cmd[i] === LINE_BREAK && isSingleLine) {
-                            --i;
+                            --i; // Todo: this might need to take into account the comment token length
                             break;
                         } else if (cmd.substring(i, i + multiLineEndLen) === TOKENS.commentHolder.multiLineEnd && !isSingleLine) {
                             tokenArr[pos].value += cmd.substring(i, i + multiLineEndLen);
-                            ++i;
+                            i += multiLineEndLen - 1;
                             break;
                         }
                     }
@@ -118,22 +119,43 @@ const tokenize = function tokenize(cmd) {
         }
         ++pos;
     }
+
     // Todo: not the most efficient way to do this
     return tokenArr.filter(el => el.value !== '' && el.value !== SPACE);
 }
 
 const addDescriptors = function addDescriptors(tokenValues, lang) {
-    switch (lang) {
-        case LANGUAGES["cpp"]:
-        case LANGUAGES["hpp"]:
-        case LANGUAGES["c"]:
-        case LANGUAGES["h"]:
-            return descriptorParsers.addCppDescriptors(tokenValues);
-        case LANGUAGES["cmake"]:
-            return descriptorParsers.addCmakeDescriptors(tokenValues); // TODO:
-        default:
-            return descriptorParsers.addDefaultDescriptors(tokenValues, lang);
+    // First add descriptors
+    const tokens = (() => {
+        switch (lang) {
+            case LANGUAGES["cpp"]:
+            case LANGUAGES["hpp"]:
+            case LANGUAGES["c"]:
+            case LANGUAGES["h"]:
+                return descriptorParsers.addCppDescriptors(tokenValues);
+            case LANGUAGES["cmake"]:
+                return descriptorParsers.addCmakeDescriptors(tokenValues);
+            default:
+                return descriptorParsers.addDefaultDescriptors(tokenValues, lang);
+        }
+    })();
+
+    // Then override styling if so defined
+    for (let i = 0; i < tokens.length; ++i) {
+        const t = tokens[i].value;
+        for (const item of TOKENS.styleOverrides.values()) {
+            if (item.token === t) {
+                tokens[i].descriptor.clear();
+                tokens[i].descriptor.add(DESCRIPTORS[item.style.toUpperCase()]);
+            }
+
+            if (tokens[i].descriptor.has(DESCRIPTORS[item.descriptor])) {
+                tokens[i].descriptor.clear();
+                tokens[i].descriptor.add(DESCRIPTORS[item.style.toUpperCase()]);
+            }
+        }
     }
+    return tokens;
 }
 
 const formatContent = function formatContent(tokens, lang = ``) {

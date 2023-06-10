@@ -72,21 +72,6 @@ const addCmakeDescriptors = function addCmakeDescriptors(tokenValues) {
         prevWasVariable = false;
     }
 
-    for (let i = 0; i < tokenValues.length; ++i) {
-        const token = tokenValues[i].value;
-        for (const item of TOKENS.styleOverrides.values()) {
-            if (item.token === token) {
-                tokenValues[i].descriptor.clear();
-                tokenValues[i].descriptor.add(DESCRIPTORS[item.style.toUpperCase()]);
-            }
-
-            if (tokenValues[i].descriptor.has(DESCRIPTORS[item.descriptor])) {
-                tokenValues[i].descriptor.clear();
-                tokenValues[i].descriptor.add(DESCRIPTORS[item.style.toUpperCase()]);
-            }
-        }
-    }
-
     return tokenValues;
 }
 

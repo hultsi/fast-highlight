@@ -3,5 +3,6 @@ div {
 }
 
 span {
-    position: relative;
+    position: revert;
+    display: inline-block;
 }

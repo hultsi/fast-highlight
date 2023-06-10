@@ -1,5 +1,6 @@
 const {
     TOKENS,
+    LANGUAGES,
 } = require("../Tokens.js");
 const DESCRIPTORS = require("./descriptors.js");
 
@@ -50,6 +51,10 @@ const addDefaultDescriptors = function addDefaultDescriptors(tokenValues, lang) 
                 return false;
             })();
             if (isComment) {
+                if (lang == LANGUAGES["html"]) {
+                    // For html, escape "<" and ">" signs to actually show them on the page
+                    tokenValues[i].value = `&lt;${tokenValues[i].value.substring(1, tokenValues[i].value.length - 1)}&gt;`;
+                }
                 tokenValues[i].descriptor.add(DESCRIPTORS["COMMENT"]);
                 continue;
             }
